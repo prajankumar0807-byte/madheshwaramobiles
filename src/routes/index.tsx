@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import {
   Phone, MapPin, Instagram, MessageCircle, Sparkles, Shield, Wrench, Zap,
   Award, Clock, BadgeCheck, Battery, Headphones, Watch, Cable, Smartphone,
-  Volume2, Usb, HardDrive, Star, ChevronRight, Mail,
+  Volume2, Usb, HardDrive, Star, ChevronRight,
 } from "lucide-react";
 import { ShopLogo } from "@/components/ShopLogo";
 import { ParticleField } from "@/components/ParticleField";
