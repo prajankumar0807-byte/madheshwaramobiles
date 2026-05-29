@@ -73,14 +73,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "MADHESHWARA  MOBILES" },
+      { name: "description", content: "A premium, AI-powered portfolio website for a mobile shop, showcasing devices, services, and offers." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "MADHESHWARA  MOBILES" },
+      { property: "og:description", content: "A premium, AI-powered portfolio website for a mobile shop, showcasing devices, services, and offers." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "MADHESHWARA  MOBILES" },
+      { name: "twitter:description", content: "A premium, AI-powered portfolio website for a mobile shop, showcasing devices, services, and offers." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BQSrWrfwdfhGBI16JpNALkvZgBp2/social-images/social-1780032457304-104712.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BQSrWrfwdfhGBI16JpNALkvZgBp2/social-images/social-1780032457304-104712.webp" },
     ],
     links: [
       {
