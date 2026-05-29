@@ -10,6 +10,14 @@ import { ParticleField } from "@/components/ParticleField";
 import { TypingSlogan } from "@/components/TypingSlogan";
 import { Counter } from "@/components/Counter";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { useI18n, LanguageToggle, dict } from "@/lib/i18n";
+
+import productSmartphone from "@/assets/product-smartphone.jpg";
+import productAudio from "@/assets/product-audio.jpg";
+import productWatch from "@/assets/product-watch.jpg";
+import productCharger from "@/assets/product-charger.jpg";
+import productGlass from "@/assets/product-glass.jpg";
+import productRepair from "@/assets/product-repair.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,6 +26,7 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Trusted mobile store in Mathur, Krishnagiri since 2011. OPPO, Vivo, Redmi, Realme phones, premium accessories and fast repairs." },
       { property: "og:title", content: "Sri Madheshwara Mobiles" },
       { property: "og:description", content: "Latest Tech. Honest Prices. Fast Fixes. Best Devices." },
+      { property: "og:image", content: productSmartphone },
     ],
   }),
   component: Index,
@@ -30,21 +39,28 @@ const TEL = "tel:+918124995343";
 
 const brands = ["OPPO", "Vivo", "Redmi", "Realme"];
 
-const reasons = [
-  { icon: BadgeCheck, title: "100% Genuine", desc: "Authentic devices & accessories, every time." },
-  { icon: Zap, title: "Fast Service", desc: "Most repairs completed the same day." },
-  { icon: Award, title: "Honest Pricing", desc: "Transparent rates with no hidden costs." },
-  { icon: Wrench, title: "Expert Technicians", desc: "Years of certified repair experience." },
-  { icon: Shield, title: "Warranty Support", desc: "Backed warranty on devices & repairs." },
-  { icon: Clock, title: "Since 2011", desc: "A trusted name in Mathur, Krishnagiri." },
+type Tk = keyof typeof dict;
+
+const reasons: { icon: typeof BadgeCheck; t: Tk; d: Tk }[] = [
+  { icon: BadgeCheck, t: "r_genuine_t", d: "r_genuine_d" },
+  { icon: Zap, t: "r_fast_t", d: "r_fast_d" },
+  { icon: Award, t: "r_honest_t", d: "r_honest_d" },
+  { icon: Wrench, t: "r_expert_t", d: "r_expert_d" },
+  { icon: Shield, t: "r_warranty_t", d: "r_warranty_d" },
+  { icon: Clock, t: "r_2011_t", d: "r_2011_d" },
 ];
 
-const categories = [
-  { icon: Smartphone, name: "Smartphones" }, { icon: Cable, name: "Chargers & Cables" },
-  { icon: Shield, name: "Tempered Glass" }, { icon: Battery, name: "Batteries" },
-  { icon: Watch, name: "Smart Watches" }, { icon: Volume2, name: "Speakers" },
-  { icon: Headphones, name: "Earbuds & Headphones" }, { icon: HardDrive, name: "Memory & Pendrives" },
-  { icon: Zap, name: "Power Banks" }, { icon: Usb, name: "OTG & Type-C" },
+const categories: { icon: typeof Smartphone; key: Tk; img: string }[] = [
+  { icon: Smartphone, key: "cat_smartphones", img: productSmartphone },
+  { icon: Cable, key: "cat_chargers", img: productCharger },
+  { icon: Shield, key: "cat_glass", img: productGlass },
+  { icon: Battery, key: "cat_batteries", img: productCharger },
+  { icon: Watch, key: "cat_watches", img: productWatch },
+  { icon: Volume2, key: "cat_speakers", img: productAudio },
+  { icon: Headphones, key: "cat_earbuds", img: productAudio },
+  { icon: HardDrive, key: "cat_memory", img: productCharger },
+  { icon: Zap, key: "cat_powerbanks", img: productCharger },
+  { icon: Usb, key: "cat_otg", img: productCharger },
 ];
 
 const accessories = [
@@ -55,30 +71,43 @@ const accessories = [
   "Cable Protectors", "Mobile Back Skins", "Stickers", "Screen Guards", "Keypad Mobiles",
 ];
 
-const services = [
-  { title: "Display Replacement", tag: "Smartphone" },
-  { title: "Battery Replacement", tag: "Smartphone" },
-  { title: "Speaker Repair", tag: "Smartphone" },
-  { title: "Mic Repair", tag: "Smartphone" },
-  { title: "Charging Port Repair", tag: "Smartphone" },
-  { title: "Display Repair", tag: "Keypad" },
-  { title: "Battery Replacement", tag: "Keypad" },
-  { title: "Speaker & Mic Repair", tag: "Keypad" },
+const services: { titleKey: Tk; tagKey: Tk }[] = [
+  { titleKey: "svc_display", tagKey: "tag_smart" },
+  { titleKey: "svc_battery", tagKey: "tag_smart" },
+  { titleKey: "svc_speaker", tagKey: "tag_smart" },
+  { titleKey: "svc_mic", tagKey: "tag_smart" },
+  { titleKey: "svc_charging", tagKey: "tag_smart" },
+  { titleKey: "svc_kdisplay", tagKey: "tag_keypad" },
+  { titleKey: "svc_battery", tagKey: "tag_keypad" },
+  { titleKey: "svc_kspeaker", tagKey: "tag_keypad" },
 ];
 
 const testimonials = [
-  { name: "Karthik R.", text: "Got my Vivo display replaced same day. Honest pricing and friendly staff. Highly recommend!", rating: 5 },
-  { name: "Priya S.", text: "Bought a Redmi from here in 2019, still going strong. Now my whole family shops here.", rating: 5 },
-  { name: "Manoj K.", text: "Best accessories collection in Mathur. Genuine products and unbeatable prices.", rating: 5 },
-  { name: "Anitha M.", text: "Battery replaced in 30 minutes. Phone feels brand new. Thank you Madhesh sir!", rating: 5 },
+  { name: "Karthik R.", text: { en: "Got my Vivo display replaced same day. Honest pricing and friendly staff. Highly recommend!", ta: "என் Vivo டிஸ்ப்ளே அதே நாளில் மாற்றினார்கள். நியாயமான விலை, நல்ல பணியாளர்கள்!" }, rating: 5 },
+  { name: "Priya S.", text: { en: "Bought a Redmi from here in 2019, still going strong. Now my whole family shops here.", ta: "2019-ல் இங்கே Redmi வாங்கினேன், இன்னும் நன்றாக இயங்குகிறது. இப்போது குடும்பம் முழுவதும் இங்கேதான்." }, rating: 5 },
+  { name: "Manoj K.", text: { en: "Best accessories collection in Mathur. Genuine products and unbeatable prices.", ta: "மாத்தூரில் சிறந்த துணை பொருட்கள். அசல் தயாரிப்புகள், ஈடு இல்லாத விலை." }, rating: 5 },
+  { name: "Anitha M.", text: { en: "Battery replaced in 30 minutes. Phone feels brand new. Thank you Madhesh sir!", ta: "30 நிமிடத்தில் பேட்டரி மாற்றினார்கள். போன் புதிதாக உள்ளது. நன்றி மதேஷ் சார்!" }, rating: 5 },
 ];
 
+const galleryImages = [productSmartphone, productAudio, productWatch, productCharger, productGlass, productRepair, productSmartphone, productAudio];
+
 function Index() {
+  const { t, lang } = useI18n();
   const [loaded, setLoaded] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 1400);
-    return () => clearTimeout(t);
+    const tm = setTimeout(() => setLoaded(true), 1400);
+    return () => clearTimeout(tm);
   }, []);
+
+  const navLinks: { key: Tk; href: string }[] = [
+    { key: "nav_about", href: "#about" },
+    { key: "nav_brands", href: "#brands" },
+    { key: "nav_accessories", href: "#accessories" },
+    { key: "nav_services", href: "#services" },
+    { key: "nav_gallery", href: "#gallery" },
+    { key: "nav_contact", href: "#contact" },
+  ];
 
   return (
     <>
@@ -89,129 +118,163 @@ function Index() {
         }`}
       >
         <div className="flex flex-col items-center gap-6">
-          <ShopLogo className="h-32 w-32 animate-float" />
-          <div className="font-display text-sm tracking-[0.4em] gradient-gold-text">LOADING EXPERIENCE</div>
+          <ShopLogo className="h-24 w-24 sm:h-32 sm:w-32 animate-float" />
+          <div className="font-display text-xs sm:text-sm tracking-[0.4em] gradient-gold-text">{t("loading")}</div>
         </div>
       </div>
 
       <main className="relative min-h-screen text-foreground overflow-x-hidden">
         {/* Nav */}
         <nav className="fixed top-0 inset-x-0 z-40 glass border-b border-[color:var(--gold)]/15">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-            <a href="#top" className="flex items-center gap-3">
-              <ShopLogo className="h-10 w-10" glow={false} />
-              <div className="hidden sm:block leading-tight">
-                <div className="font-display text-sm gradient-gold-text">SRI MADHESHWARA</div>
-                <div className="text-[10px] tracking-[0.3em] text-muted-foreground">MOBILES · SINCE 2011</div>
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+            <a href="#top" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <ShopLogo className="h-8 w-8 sm:h-10 sm:w-10 shrink-0" glow={false} />
+              <div className="hidden xs:block sm:block leading-tight min-w-0">
+                <div className="font-display text-[11px] sm:text-sm gradient-gold-text truncate">SRI MADHESHWARA</div>
+                <div className="text-[9px] sm:text-[10px] tracking-[0.25em] text-muted-foreground">MOBILES · SINCE 2011</div>
               </div>
             </a>
-            <div className="hidden md:flex items-center gap-7 text-sm text-muted-foreground">
-              {["About", "Brands", "Accessories", "Services", "Gallery", "Contact"].map(l => (
-                <a key={l} href={`#${l.toLowerCase()}`} className="hover:text-gold transition-colors">{l}</a>
+            <div className="hidden lg:flex items-center gap-6 text-sm text-muted-foreground">
+              {navLinks.map(l => (
+                <a key={l.key} href={l.href} className="hover:text-gold transition-colors">{t(l.key)}</a>
               ))}
             </div>
-            <a href={WA} target="_blank" rel="noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full gradient-gold-bg text-background text-sm font-semibold shadow-gold hover:scale-105 transition">
-              <MessageCircle className="h-4 w-4" /> Chat
-            </a>
+            <div className="flex items-center gap-2">
+              <LanguageToggle />
+              <a href={WA} target="_blank" rel="noreferrer"
+                className="hidden sm:inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full gradient-gold-bg text-background text-xs sm:text-sm font-semibold shadow-gold hover:scale-105 transition">
+                <MessageCircle className="h-4 w-4" /> {t("nav_chat")}
+              </a>
+              <button
+                className="lg:hidden p-2 rounded-lg glass text-gold"
+                onClick={() => setMenuOpen(!menuOpen)}
+                aria-label="Menu"
+              >
+                <div className="h-4 w-5 flex flex-col justify-between">
+                  <span className={`block h-0.5 bg-current transition ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
+                  <span className={`block h-0.5 bg-current transition ${menuOpen ? "opacity-0" : ""}`} />
+                  <span className={`block h-0.5 bg-current transition ${menuOpen ? "-rotate-45 -translate-y-[7px]" : ""}`} />
+                </div>
+              </button>
+            </div>
           </div>
+          {/* Mobile menu */}
+          {menuOpen && (
+            <div className="lg:hidden glass border-t border-[color:var(--gold)]/15 px-4 py-4 space-y-2">
+              {navLinks.map(l => (
+                <a key={l.key} href={l.href} onClick={() => setMenuOpen(false)}
+                  className="block py-2 text-sm text-muted-foreground hover:text-gold transition">{t(l.key)}</a>
+              ))}
+              <a href={WA} target="_blank" rel="noreferrer"
+                className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-full gradient-gold-bg text-background text-sm font-semibold">
+                <MessageCircle className="h-4 w-4" /> {t("nav_chat")}
+              </a>
+            </div>
+          )}
         </nav>
 
         {/* Hero */}
-        <section id="top" className="relative min-h-screen pt-24 pb-16 flex items-center overflow-hidden">
+        <section id="top" className="relative min-h-[100svh] pt-20 sm:pt-24 pb-12 sm:pb-16 flex items-center overflow-hidden">
           <ParticleField />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(232,196,108,0.18),transparent_60%)] pointer-events-none" />
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-10 items-center w-full">
-            <div className="animate-rise">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-xs tracking-widest text-gold mb-6">
-                <Sparkles className="h-3 w-3" /> TRUSTED SINCE 2011
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center w-full">
+            <div className="animate-rise text-center md:text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass text-[10px] sm:text-xs tracking-widest text-gold mb-5 sm:mb-6">
+                <Sparkles className="h-3 w-3" /> {t("trusted_since")}
               </div>
-              <h1 className="font-display text-4xl sm:text-5xl md:text-6xl leading-[1.05]">
+              <h1 className="font-display text-3xl sm:text-5xl md:text-6xl leading-[1.05]">
                 <span className="block text-foreground">SRI MADHESHWARA</span>
                 <span className="block gradient-gold-text mt-2">MOBILES</span>
               </h1>
-              <div className="mt-6 text-xl sm:text-2xl min-h-[2.5rem]">
-                <TypingSlogan phrases={["Latest Tech. Honest Prices.", "Fast Fixes. Best Devices.", "Premium Mobile Showroom."]} />
+              <div className="mt-5 sm:mt-6 text-lg sm:text-xl md:text-2xl min-h-[2.5rem]">
+                <TypingSlogan
+                  key={lang}
+                  phrases={[t("hero_tagline_1"), t("hero_tagline_2"), t("hero_tagline_3")]}
+                />
               </div>
-              <p className="mt-5 text-muted-foreground max-w-md">
-                Your flagship mobile destination in Mathur, Krishnagiri — featuring OPPO, Vivo, Redmi, Realme & a complete accessories ecosystem.
+              <p className="mt-4 sm:mt-5 text-sm sm:text-base text-muted-foreground max-w-md mx-auto md:mx-0">
+                {t("hero_sub")}
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <a href="#accessories" className="inline-flex items-center gap-2 px-5 py-3 rounded-full gradient-gold-bg text-background font-semibold shadow-gold hover:scale-105 transition">
-                  Explore Products <ChevronRight className="h-4 w-4" />
+              <div className="mt-6 sm:mt-8 flex flex-wrap gap-2 sm:gap-3 justify-center md:justify-start">
+                <a href="#accessories" className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full gradient-gold-bg text-background font-semibold text-sm shadow-gold hover:scale-105 transition">
+                  {t("cta_explore")} <ChevronRight className="h-4 w-4" />
                 </a>
-                <a href={WA} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-full glass text-foreground hover:border-[color:var(--gold)] transition">
-                  <MessageCircle className="h-4 w-4 text-gold" /> WhatsApp
+                <a href={WA} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full glass text-foreground text-sm hover:border-[color:var(--gold)] transition">
+                  <MessageCircle className="h-4 w-4 text-gold" /> {t("cta_whatsapp")}
                 </a>
-                <a href={INSTA} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-full glass text-foreground hover:border-[color:var(--gold)] transition">
-                  <Instagram className="h-4 w-4 text-gold" /> Instagram
+                <a href={INSTA} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full glass text-foreground text-sm hover:border-[color:var(--gold)] transition">
+                  <Instagram className="h-4 w-4 text-gold" /> {t("cta_instagram")}
                 </a>
-                <a href={MAPS} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-5 py-3 rounded-full glass text-foreground hover:border-[color:var(--gold)] transition">
-                  <MapPin className="h-4 w-4 text-gold" /> Directions
+                <a href={MAPS} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-full glass text-foreground text-sm hover:border-[color:var(--gold)] transition">
+                  <MapPin className="h-4 w-4 text-gold" /> {t("cta_directions")}
                 </a>
               </div>
             </div>
-            <div className="relative flex justify-center items-center">
+            <div className="relative flex justify-center items-center order-first md:order-last">
               <div className="absolute inset-0 gradient-gold-bg opacity-20 blur-3xl rounded-full" />
-              <ShopLogo className="relative h-72 w-72 md:h-96 md:w-96 animate-float" />
-              <div className="absolute top-10 right-2 glass-card rounded-2xl px-3 py-2 text-xs animate-float" style={{ animationDelay: "1s" }}>
-                <div className="text-gold font-semibold">★ 4.9</div>
-                <div className="text-muted-foreground">Customer Rating</div>
+              <div className="relative w-56 h-56 sm:w-72 sm:h-72 md:w-96 md:h-96 rounded-3xl overflow-hidden shadow-gold animate-float">
+                <img src={productSmartphone} alt="Premium smartphone showroom" width={1024} height={1024}
+                  className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
+                  <ShopLogo className="h-10 w-10" glow={false} />
+                  <div className="text-[10px] tracking-[0.3em] text-gold">FLAGSHIP</div>
+                </div>
               </div>
-              <div className="absolute bottom-10 left-0 glass-card rounded-2xl px-3 py-2 text-xs animate-float" style={{ animationDelay: "2s" }}>
-                <div className="text-gold font-semibold">⚡ Same Day</div>
-                <div className="text-muted-foreground">Repair Service</div>
+              <div className="absolute top-2 right-1 sm:top-10 sm:right-2 glass-card rounded-2xl px-3 py-2 text-xs animate-float" style={{ animationDelay: "1s" }}>
+                <div className="text-gold font-semibold">★ 4.9</div>
+                <div className="text-muted-foreground text-[10px]">{t("rating")}</div>
+              </div>
+              <div className="absolute bottom-2 left-1 sm:bottom-10 sm:left-0 glass-card rounded-2xl px-3 py-2 text-xs animate-float" style={{ animationDelay: "2s" }}>
+                <div className="text-gold font-semibold">⚡</div>
+                <div className="text-muted-foreground text-[10px]">{t("same_day")}</div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Stats */}
-        <section className="relative py-16 border-y border-[color:var(--gold)]/15">
-          <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8">
-            <Counter to={15000} suffix="+" label="Customers Served" />
-            <Counter to={8500} suffix="+" label="Repairs Completed" />
-            <Counter to={14} suffix="+" label="Years of Trust" />
-            <Counter to={300} suffix="+" label="Accessories" />
+        <section className="relative py-12 sm:py-16 border-y border-[color:var(--gold)]/15">
+          <div className="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
+            <Counter to={15000} suffix="+" label={t("stat_customers")} />
+            <Counter to={8500} suffix="+" label={t("stat_repairs")} />
+            <Counter to={14} suffix="+" label={t("stat_years")} />
+            <Counter to={300} suffix="+" label={t("stat_acc")} />
           </div>
         </section>
 
         {/* About */}
-        <section id="about" className="relative py-24 px-4">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <section id="about" className="relative py-16 sm:py-24 px-4">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 md:gap-12 items-center">
             <div>
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">OUR STORY</div>
-              <h2 className="text-3xl md:text-4xl mb-6">A Legacy of <span className="gradient-gold-text">Trust & Technology</span></h2>
-              <p className="text-muted-foreground leading-relaxed mb-4">
-                Founded in 2011, Sri Madheshwara Mobiles has grown from a small neighborhood store into Mathur's most trusted mobile destination. We've built our reputation on three simple promises: genuine products, honest pricing, and lightning-fast service.
-              </p>
-              <p className="text-muted-foreground leading-relaxed mb-8">
-                Today, we serve thousands of happy customers across Krishnagiri with the latest smartphones, premium accessories, and expert repair services — all under one roof.
-              </p>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("our_story")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl mb-5 sm:mb-6">{t("legacy_h")} <span className="gradient-gold-text">{t("legacy_h2")}</span></h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4">{t("about_p1")}</p>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-7 sm:mb-8">{t("about_p2")}</p>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div className="glass-card rounded-xl p-4">
-                  <div className="text-xs text-muted-foreground">OWNER</div>
-                  <div className="font-semibold text-gold mt-1">Madhesh V.M</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t("owner")}</div>
+                  <div className="font-semibold text-gold mt-1 text-sm sm:text-base">Madhesh V.M</div>
                 </div>
                 <div className="glass-card rounded-xl p-4">
-                  <div className="text-xs text-muted-foreground">MANAGER</div>
-                  <div className="font-semibold text-gold mt-1">Malathi Madhesh</div>
+                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t("manager")}</div>
+                  <div className="font-semibold text-gold mt-1 text-sm sm:text-base">Malathi Madhesh</div>
                 </div>
               </div>
             </div>
             <div className="relative">
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {[
-                  { y: "2011", t: "The Beginning", d: "Sri Madheshwara Mobiles opens its doors in Mathur." },
-                  { y: "2016", t: "Expanding Services", d: "Launched full-service mobile repair centre." },
-                  { y: "2020", t: "Premium Brand Hub", d: "Authorized stockist for OPPO, Vivo, Redmi, Realme." },
-                  { y: "Today", t: "Trusted Flagship", d: "Serving 15,000+ happy customers across Krishnagiri." },
+                  { y: "2011", t: { en: "The Beginning", ta: "ஆரம்பம்" }, d: { en: "Sri Madheshwara Mobiles opens its doors in Mathur.", ta: "ஸ்ரீ மதேஷ்வரா மொபைல்ஸ் மாத்தூரில் தொடங்கப்பட்டது." } },
+                  { y: "2016", t: { en: "Expanding Services", ta: "சேவைகள் விரிவாக்கம்" }, d: { en: "Launched full-service mobile repair centre.", ta: "முழுமையான மொபைல் பழுது மையம் தொடங்கப்பட்டது." } },
+                  { y: "2020", t: { en: "Premium Brand Hub", ta: "பிரீமியம் பிராண்ட் மையம்" }, d: { en: "Authorized stockist for OPPO, Vivo, Redmi, Realme.", ta: "OPPO, Vivo, Redmi, Realme அங்கீகரிக்கப்பட்ட விற்பனையாளர்." } },
+                  { y: lang === "ta" ? "இன்று" : "Today", t: { en: "Trusted Flagship", ta: "நம்பகமான முதன்மை" }, d: { en: "Serving 15,000+ happy customers across Krishnagiri.", ta: "கிருஷ்ணகிரியில் 15,000+ வாடிக்கையாளர்களுக்கு சேவை." } },
                 ].map((m, i) => (
-                  <div key={i} className="glass-card rounded-2xl p-5 flex gap-4 hover:translate-x-1 transition">
-                    <div className="font-display text-2xl gradient-gold-text shrink-0 w-20">{m.y}</div>
-                    <div>
-                      <div className="font-semibold">{m.t}</div>
-                      <div className="text-sm text-muted-foreground">{m.d}</div>
+                  <div key={i} className="glass-card rounded-2xl p-4 sm:p-5 flex gap-3 sm:gap-4 hover:translate-x-1 transition">
+                    <div className="font-display text-lg sm:text-2xl gradient-gold-text shrink-0 w-16 sm:w-20">{m.y}</div>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-sm sm:text-base">{m.t[lang]}</div>
+                      <div className="text-xs sm:text-sm text-muted-foreground">{m.d[lang]}</div>
                     </div>
                   </div>
                 ))}
@@ -221,20 +284,20 @@ function Index() {
         </section>
 
         {/* Why Us */}
-        <section className="relative py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
+        <section className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">WHY CHOOSE US</div>
-              <h2 className="text-3xl md:text-4xl">The <span className="gradient-gold-text">Madheshwara</span> Promise</h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("why_us")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("why_h")} <span className="gradient-gold-text">Madheshwara</span> {t("why_h2")}</h2>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               {reasons.map((r, i) => (
-                <div key={i} className="glass-card rounded-2xl p-6 hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="h-12 w-12 rounded-xl gradient-gold-bg flex items-center justify-center mb-4 group-hover:scale-110 transition">
-                    <r.icon className="h-6 w-6 text-background" />
+                <div key={i} className="glass-card rounded-2xl p-5 sm:p-6 hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl gradient-gold-bg flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                    <r.icon className="h-5 w-5 sm:h-6 sm:w-6 text-background" />
                   </div>
-                  <div className="font-semibold text-lg mb-1">{r.title}</div>
-                  <div className="text-sm text-muted-foreground">{r.desc}</div>
+                  <div className="font-semibold text-base sm:text-lg mb-1">{t(r.t)}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">{t(r.d)}</div>
                 </div>
               ))}
             </div>
@@ -242,17 +305,17 @@ function Index() {
         </section>
 
         {/* Brands */}
-        <section id="brands" className="relative py-24 px-4">
+        <section id="brands" className="relative py-16 sm:py-24 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">FLAGSHIP BRANDS</div>
-              <h2 className="text-3xl md:text-4xl">Top Brands, <span className="gradient-gold-text">All In One Place</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("brands_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("brands_h2")} <span className="gradient-gold-text">{t("brands_h3")}</span></h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5">
               {brands.map(b => (
-                <div key={b} className="relative glass-card rounded-2xl p-8 flex items-center justify-center group overflow-hidden">
+                <div key={b} className="relative glass-card rounded-2xl p-6 sm:p-8 flex items-center justify-center group overflow-hidden aspect-[3/2]">
                   <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition gradient-gold-bg blur-2xl" />
-                  <div className="relative font-display text-2xl md:text-3xl gradient-gold-text">{b}</div>
+                  <div className="relative font-display text-xl sm:text-2xl md:text-3xl gradient-gold-text">{b}</div>
                 </div>
               ))}
             </div>
@@ -260,25 +323,32 @@ function Index() {
         </section>
 
         {/* Accessories */}
-        <section id="accessories" className="relative py-24 px-4">
+        <section id="accessories" className="relative py-16 sm:py-24 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">ACCESSORIES SHOWCASE</div>
-              <h2 className="text-3xl md:text-4xl">Everything Your Phone <span className="gradient-gold-text">Deserves</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("acc_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("acc_h2")} <span className="gradient-gold-text">{t("acc_h3")}</span></h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-10">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 sm:gap-4 mb-8 sm:mb-10">
               {categories.map((c, i) => (
-                <div key={i} className="glass-card rounded-2xl p-5 text-center hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition">
-                  <c.icon className="h-7 w-7 text-gold mx-auto mb-3" />
-                  <div className="text-sm font-medium">{c.name}</div>
+                <div key={i} className="glass-card rounded-2xl overflow-hidden hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="aspect-square overflow-hidden relative">
+                    <img src={c.img} alt={dict[c.key].en} loading="lazy" width={1024} height={1024}
+                      className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+                    <c.icon className="absolute top-2 right-2 h-5 w-5 text-gold drop-shadow" />
+                  </div>
+                  <div className="p-3 text-center">
+                    <div className="text-xs sm:text-sm font-medium">{t(c.key)}</div>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="glass rounded-3xl p-6 md:p-8">
-              <div className="text-sm text-gold mb-4 font-semibold">Full Catalog</div>
+            <div className="glass rounded-3xl p-5 sm:p-6 md:p-8">
+              <div className="text-sm text-gold mb-4 font-semibold">{t("acc_catalog")}</div>
               <div className="flex flex-wrap gap-2">
                 {accessories.map(a => (
-                  <span key={a} className="px-3 py-1.5 rounded-full text-xs glass-card hover:bg-[color:var(--gold)]/10 transition cursor-default">
+                  <span key={a} className="px-3 py-1.5 rounded-full text-[11px] sm:text-xs glass-card hover:bg-[color:var(--gold)]/10 transition cursor-default">
                     {a}
                   </span>
                 ))}
@@ -288,54 +358,60 @@ function Index() {
         </section>
 
         {/* Services */}
-        <section id="services" className="relative py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
+        <section id="services" className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">MOBILE SERVICES</div>
-              <h2 className="text-3xl md:text-4xl">Expert Repairs, <span className="gradient-gold-text">Done Right</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("svc_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("svc_h2")} <span className="gradient-gold-text">{t("svc_h3")}</span></h2>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {services.map((s, i) => (
-                <div key={i} className="glass-card rounded-2xl p-5 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="flex items-center justify-between mb-3">
-                    <Wrench className="h-5 w-5 text-gold" />
-                    <span className="text-[10px] tracking-widest text-muted-foreground">{s.tag.toUpperCase()}</span>
+            <div className="grid md:grid-cols-3 gap-5 mb-8">
+              <div className="md:col-span-1 rounded-3xl overflow-hidden glass-card aspect-square md:aspect-auto">
+                <img src={productRepair} alt="Mobile repair workshop" loading="lazy" width={1024} height={1024}
+                  className="w-full h-full object-cover" />
+              </div>
+              <div className="md:col-span-2 grid sm:grid-cols-2 gap-4">
+                {services.map((s, i) => (
+                  <div key={i} className="glass-card rounded-2xl p-4 sm:p-5 hover:border-[color:var(--gold)]/60 transition group">
+                    <div className="flex items-center justify-between mb-3">
+                      <Wrench className="h-5 w-5 text-gold" />
+                      <span className="text-[10px] tracking-widest text-muted-foreground">{t(s.tagKey)}</span>
+                    </div>
+                    <div className="font-semibold text-sm sm:text-base">{t(s.titleKey)}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{t("svc_sameday")}</div>
                   </div>
-                  <div className="font-semibold">{s.title}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Most repairs same-day</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-            <div className="mt-10 text-center">
+            <div className="text-center">
               <a href={WA} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-full gradient-gold-bg text-background font-semibold shadow-gold hover:scale-105 transition">
-                Book a Repair <ChevronRight className="h-4 w-4" />
+                className="inline-flex items-center gap-2 px-5 sm:px-6 py-3 rounded-full gradient-gold-bg text-background font-semibold shadow-gold hover:scale-105 transition text-sm">
+                {t("svc_book")} <ChevronRight className="h-4 w-4" />
               </a>
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="relative py-24 px-4">
+        <section className="relative py-16 sm:py-24 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">CUSTOMER LOVE</div>
-              <h2 className="text-3xl md:text-4xl">What Our <span className="gradient-gold-text">Customers Say</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("test_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("test_h2")} <span className="gradient-gold-text">{t("test_h3")}</span></h2>
             </div>
-            <div className="grid md:grid-cols-2 gap-5">
-              {testimonials.map((t, i) => (
-                <div key={i} className="glass-card rounded-2xl p-6">
+            <div className="grid md:grid-cols-2 gap-4 sm:gap-5">
+              {testimonials.map((tm, i) => (
+                <div key={i} className="glass-card rounded-2xl p-5 sm:p-6">
                   <div className="flex gap-1 mb-3">
-                    {Array.from({ length: t.rating }).map((_, j) => (
+                    {Array.from({ length: tm.rating }).map((_, j) => (
                       <Star key={j} className="h-4 w-4 fill-[color:var(--gold)] text-gold" />
                     ))}
                   </div>
-                  <p className="text-muted-foreground italic mb-4">"{t.text}"</p>
+                  <p className="text-sm sm:text-base text-muted-foreground italic mb-4">"{tm.text[lang]}"</p>
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full gradient-gold-bg flex items-center justify-center text-background font-bold">
-                      {t.name[0]}
+                    <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full gradient-gold-bg flex items-center justify-center text-background font-bold">
+                      {tm.name[0]}
                     </div>
-                    <div className="font-semibold">{t.name}</div>
+                    <div className="font-semibold text-sm sm:text-base">{tm.name}</div>
                   </div>
                 </div>
               ))}
@@ -344,20 +420,19 @@ function Index() {
         </section>
 
         {/* Gallery */}
-        <section id="gallery" className="relative py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
+        <section id="gallery" className="relative py-16 sm:py-24 px-4 bg-gradient-to-b from-transparent via-[color:var(--card)]/30 to-transparent">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">GALLERY</div>
-              <h2 className="text-3xl md:text-4xl">Inside Our <span className="gradient-gold-text">Showroom</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("gallery_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("gallery_h2")} <span className="gradient-gold-text">{t("gallery_h3")}</span></h2>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className={`relative rounded-2xl overflow-hidden glass-card ${i % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"}`}>
-                  <div className="absolute inset-0 gradient-gold-bg opacity-10" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Smartphone className="h-10 w-10 text-gold/60" />
-                  </div>
-                  <div className="absolute bottom-2 left-2 right-2 text-[10px] tracking-widest text-muted-foreground">
+              {galleryImages.map((src, i) => (
+                <div key={i} className={`relative rounded-2xl overflow-hidden glass-card group ${i % 3 === 0 ? "row-span-2 aspect-[3/4]" : "aspect-square"}`}>
+                  <img src={src} alt={`Showroom shot ${i + 1}`} loading="lazy" width={1024} height={1024}
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+                  <div className="absolute bottom-2 left-2 right-2 text-[10px] tracking-widest text-gold">
                     SHOT {String(i + 1).padStart(2, "0")}
                   </div>
                 </div>
@@ -367,64 +442,64 @@ function Index() {
         </section>
 
         {/* Contact */}
-        <section id="contact" className="relative py-24 px-4">
+        <section id="contact" className="relative py-16 sm:py-24 px-4">
           <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-14">
-              <div className="text-xs tracking-[0.4em] text-gold mb-3">VISIT US</div>
-              <h2 className="text-3xl md:text-4xl">Let's <span className="gradient-gold-text">Connect</span></h2>
+            <div className="text-center mb-10 sm:mb-14">
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">{t("contact_h1")}</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">{t("contact_h2")} <span className="gradient-gold-text">{t("contact_h3")}</span></h2>
             </div>
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <a href={TEL} className="block glass-card rounded-2xl p-5 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition">
+            <div className="grid md:grid-cols-2 gap-5 sm:gap-6">
+              <div className="space-y-3 sm:space-y-4">
+                <a href={TEL} className="block glass-card rounded-2xl p-4 sm:p-5 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition shrink-0">
                       <Phone className="h-5 w-5 text-background" />
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">CALL US</div>
-                      <div className="font-semibold text-gold">+91 81249 95343</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">{t("call_us")}</div>
+                      <div className="font-semibold text-gold text-sm sm:text-base">+91 81249 95343</div>
                     </div>
                   </div>
                 </a>
-                <a href={WA} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-5 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition">
+                <a href={WA} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-4 sm:p-5 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition shrink-0">
                       <MessageCircle className="h-5 w-5 text-background" />
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">WHATSAPP</div>
-                      <div className="font-semibold text-gold">Chat Instantly</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">{t("whatsapp_label")}</div>
+                      <div className="font-semibold text-gold text-sm sm:text-base">{t("chat_now")}</div>
                     </div>
                   </div>
                 </a>
-                <a href={INSTA} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-5 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition">
+                <a href={INSTA} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-4 sm:p-5 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition shrink-0">
                       <Instagram className="h-5 w-5 text-background" />
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">INSTAGRAM</div>
-                      <div className="font-semibold text-gold">@madheshwara.mobiles</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">{t("instagram_label")}</div>
+                      <div className="font-semibold text-gold text-sm sm:text-base">@madheshwara.mobiles</div>
                     </div>
                   </div>
                 </a>
-                <a href={MAPS} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-5 hover:border-[color:var(--gold)]/60 transition group">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition">
+                <a href={MAPS} target="_blank" rel="noreferrer" className="block glass-card rounded-2xl p-4 sm:p-5 hover:border-[color:var(--gold)]/60 transition group">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-xl gradient-gold-bg flex items-center justify-center group-hover:scale-110 transition shrink-0">
                       <MapPin className="h-5 w-5 text-background" />
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">LOCATION</div>
-                      <div className="font-semibold text-gold">Mathur Bus Stand, Krishnagiri – 635 203</div>
+                    <div className="min-w-0">
+                      <div className="text-[10px] sm:text-xs text-muted-foreground">{t("location_label")}</div>
+                      <div className="font-semibold text-gold text-sm sm:text-base">{t("address")}</div>
                     </div>
                   </div>
                 </a>
               </div>
-              <div className="rounded-2xl overflow-hidden glass-card min-h-[320px]">
+              <div className="rounded-2xl overflow-hidden glass-card min-h-[260px] sm:min-h-[320px]">
                 <iframe
                   title="Sri Madheshwara Mobiles location"
                   src="https://www.google.com/maps?q=Mathur+Bus+Stand,+Krishnagiri+635203&output=embed"
-                  className="w-full h-full min-h-[320px] border-0"
+                  className="w-full h-full min-h-[260px] sm:min-h-[320px] border-0"
                   loading="lazy"
                 />
               </div>
@@ -433,31 +508,31 @@ function Index() {
         </section>
 
         {/* Footer */}
-        <footer className="relative py-12 px-4 border-t border-[color:var(--gold)]/15 mt-8">
-          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+        <footer className="relative py-10 sm:py-12 px-4 border-t border-[color:var(--gold)]/15 mt-8">
+          <div className="max-w-6xl mx-auto grid sm:grid-cols-2 md:grid-cols-3 gap-8">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <ShopLogo className="h-12 w-12" />
+                <ShopLogo className="h-11 w-11 sm:h-12 sm:w-12" />
                 <div>
-                  <div className="font-display gradient-gold-text">SRI MADHESHWARA</div>
+                  <div className="font-display gradient-gold-text text-sm sm:text-base">SRI MADHESHWARA</div>
                   <div className="text-[10px] tracking-[0.3em] text-muted-foreground">MOBILES · SINCE 2011</div>
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">Latest Tech. Honest Prices. Fast Fixes. Best Devices.</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{t("footer_tag")}</p>
             </div>
             <div>
-              <div className="text-xs tracking-widest text-gold mb-3">QUICK LINKS</div>
+              <div className="text-xs tracking-widest text-gold mb-3">{t("quick_links")}</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                {["About", "Brands", "Accessories", "Services", "Gallery", "Contact"].map(l => (
-                  <li key={l}><a href={`#${l.toLowerCase()}`} className="hover:text-gold transition">{l}</a></li>
+                {navLinks.map(l => (
+                  <li key={l.key}><a href={l.href} className="hover:text-gold transition">{t(l.key)}</a></li>
                 ))}
               </ul>
             </div>
             <div>
-              <div className="text-xs tracking-widest text-gold mb-3">BUSINESS HOURS</div>
-              <div className="text-sm text-muted-foreground space-y-1">
-                <div>Mon – Sat · 9:30 AM – 9:30 PM</div>
-                <div>Sunday · 10:00 AM – 8:00 PM</div>
+              <div className="text-xs tracking-widest text-gold mb-3">{t("hours_h")}</div>
+              <div className="text-xs sm:text-sm text-muted-foreground space-y-1">
+                <div>{t("hours_1")}</div>
+                <div>{t("hours_2")}</div>
               </div>
               <div className="flex gap-3 mt-4">
                 <a href={WA} target="_blank" rel="noreferrer" className="h-9 w-9 rounded-full glass-card flex items-center justify-center hover:bg-[color:var(--gold)]/10 transition"><MessageCircle className="h-4 w-4 text-gold" /></a>
@@ -467,8 +542,8 @@ function Index() {
               </div>
             </div>
           </div>
-          <div className="max-w-6xl mx-auto mt-10 pt-6 border-t border-[color:var(--gold)]/10 flex flex-col sm:flex-row gap-2 items-center justify-between text-xs text-muted-foreground">
-            <div>© {new Date().getFullYear()} Sri Madheshwara Mobiles. All rights reserved.</div>
+          <div className="max-w-6xl mx-auto mt-8 sm:mt-10 pt-6 border-t border-[color:var(--gold)]/10 flex flex-col sm:flex-row gap-2 items-center justify-between text-[11px] sm:text-xs text-muted-foreground text-center">
+            <div>© {new Date().getFullYear()} Sri Madheshwara Mobiles. {t("rights")}</div>
             <div className="gradient-gold-text">Designed for futuristic mobile commerce.</div>
           </div>
         </footer>
