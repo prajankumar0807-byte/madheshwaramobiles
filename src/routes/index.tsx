@@ -16,6 +16,11 @@ import { useI18n, LanguageToggle, dict } from "@/lib/i18n";
 import shopFront from "@/assets/shop-front.jpg";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
+import { VisitorCounter } from "@/components/VisitorCounter";
+import ownerImg from "@/assets/owner-madhesh.jpg";
+
+const GOOGLE_REVIEW_URL =
+  "https://www.google.com/maps/search/?api=1&query=Sri+Madheshwara+Mobiles+Mathur+Krishnagiri+635203";
 
 import productSmartphone from "@/assets/product-smartphone.jpg";
 import productAudio from "@/assets/product-audio.jpg";
@@ -246,6 +251,9 @@ function Index() {
             <Counter to={14} suffix="+" label={t("stat_years")} />
             <Counter to={300} suffix="+" label={t("stat_acc")} />
           </div>
+          <div className="max-w-6xl mx-auto px-4 mt-8 flex justify-center">
+            <VisitorCounter />
+          </div>
         </section>
 
         {/* About */}
@@ -256,14 +264,24 @@ function Index() {
               <h2 className="text-2xl sm:text-3xl md:text-4xl mb-5 sm:mb-6">{t("legacy_h")} <span className="gradient-gold-text">{t("legacy_h2")}</span></h2>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-4">{t("about_p1")}</p>
               <p className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-7 sm:mb-8">{t("about_p2")}</p>
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="glass-card rounded-xl p-4">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t("owner")}</div>
-                  <div className="font-semibold text-gold mt-1 text-sm sm:text-base">Madhesh V.M</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="glass-card rounded-xl p-4 flex items-center gap-4">
+                  <img
+                    src={ownerImg}
+                    alt="M.V.MADHESH — Owner of Sri Madheshwara Mobiles"
+                    className="h-16 w-16 sm:h-20 sm:w-20 rounded-full object-cover ring-2 ring-[color:var(--gold)]/60 shadow-gold"
+                    loading="lazy"
+                  />
+                  <div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">{t("owner")}</div>
+                    <div className="font-semibold text-gold mt-1 text-sm sm:text-base">M.V.MADHESH</div>
+                  </div>
                 </div>
-                <div className="glass-card rounded-xl p-4">
-                  <div className="text-[10px] sm:text-xs text-muted-foreground">{t("manager")}</div>
-                  <div className="font-semibold text-gold mt-1 text-sm sm:text-base">Malathi Madhesh</div>
+                <div className="glass-card rounded-xl p-4 flex items-center">
+                  <div>
+                    <div className="text-[10px] sm:text-xs text-muted-foreground">{t("manager")}</div>
+                    <div className="font-semibold text-gold mt-1 text-sm sm:text-base">Malathi Madhesh</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -420,6 +438,29 @@ function Index() {
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-10 sm:mt-12 glass-card rounded-3xl p-6 sm:p-8 text-center max-w-2xl mx-auto">
+              <div className="flex justify-center gap-1 mb-3">
+                {Array.from({ length: 5 }).map((_, j) => (
+                  <Star key={j} className="h-5 w-5 fill-[color:var(--gold)] text-gold" />
+                ))}
+              </div>
+              <h3 className="text-xl sm:text-2xl font-display mb-2">
+                Loved our service? <span className="gradient-gold-text">Rate us on Google</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground mb-5">
+                Your review helps more families in Mathur discover us. It takes only 30 seconds.
+              </p>
+              <a
+                href={GOOGLE_REVIEW_URL}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl gradient-gold-bg text-background font-semibold shadow-gold hover:scale-[1.02] transition"
+              >
+                <Star className="h-4 w-4" />
+                Write a Google Review
+                <ChevronRight className="h-4 w-4" />
+              </a>
             </div>
           </div>
         </section>
