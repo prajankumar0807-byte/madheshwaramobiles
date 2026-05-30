@@ -94,7 +94,7 @@ const testimonials = [
   { name: "Anitha M.", text: { en: "Battery replaced in 30 minutes. Phone feels brand new. Thank you Madhesh sir!", ta: "30 நிமிடத்தில் பேட்டரி மாற்றினார்கள். போன் புதிதாக உள்ளது. நன்றி மதேஷ் சார்!" }, rating: 5 },
 ];
 
-const galleryImages = [productSmartphone, productAudio, productWatch, productCharger, productGlass, productRepair, productSmartphone, productAudio];
+const galleryImages = [shopFront, productSmartphone, productAudio, productWatch, productCharger, productGlass, productRepair, shopFront];
 
 function Index() {
   const { t, lang } = useI18n();
@@ -590,11 +590,17 @@ function Index() {
           </div>
           <div className="max-w-6xl mx-auto mt-8 sm:mt-10 pt-6 border-t border-[color:var(--gold)]/10 flex flex-col sm:flex-row gap-2 items-center justify-between text-[11px] sm:text-xs text-muted-foreground text-center">
             <div>© {new Date().getFullYear()} Sri Madheshwara Mobiles. {t("rights")}</div>
-            <div className="gradient-gold-text">Designed for futuristic mobile commerce.</div>
+            <div className="flex items-center gap-4">
+              <Link to="/admin" className="inline-flex items-center gap-1 text-muted-foreground hover:text-gold transition">
+                <Lock className="h-3 w-3" /> Admin
+              </Link>
+              <span className="gradient-gold-text">Designed for futuristic mobile commerce.</span>
+            </div>
           </div>
         </footer>
 
         <WhatsAppFab />
+        <AIChatFab />
       </main>
     </>
   );
