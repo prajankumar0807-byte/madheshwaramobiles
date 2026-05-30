@@ -10,7 +10,12 @@ import { ParticleField } from "@/components/ParticleField";
 import { TypingSlogan } from "@/components/TypingSlogan";
 import { Counter } from "@/components/Counter";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { AIChatFab } from "@/components/AIChatFab";
+import { LeadCapture } from "@/components/LeadCapture";
 import { useI18n, LanguageToggle, dict } from "@/lib/i18n";
+import shopFront from "@/assets/shop-front.jpg";
+import { Link } from "@tanstack/react-router";
+import { Lock } from "lucide-react";
 
 import productSmartphone from "@/assets/product-smartphone.jpg";
 import productAudio from "@/assets/product-audio.jpg";
@@ -89,7 +94,7 @@ const testimonials = [
   { name: "Anitha M.", text: { en: "Battery replaced in 30 minutes. Phone feels brand new. Thank you Madhesh sir!", ta: "30 நிமிடத்தில் பேட்டரி மாற்றினார்கள். போன் புதிதாக உள்ளது. நன்றி மதேஷ் சார்!" }, rating: 5 },
 ];
 
-const galleryImages = [productSmartphone, productAudio, productWatch, productCharger, productGlass, productRepair, productSmartphone, productAudio];
+const galleryImages = [shopFront, productSmartphone, productAudio, productWatch, productCharger, productGlass, productRepair, shopFront];
 
 function Index() {
   const { t, lang } = useI18n();
@@ -441,6 +446,47 @@ function Index() {
           </div>
         </section>
 
+        {/* Our Shop - Real storefront */}
+        <section className="relative py-16 sm:py-24 px-4">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8 md:gap-10 items-center">
+            <div className="relative rounded-3xl overflow-hidden glass-card shadow-gold group">
+              <img src={shopFront} alt="Sri Madheshwara Mobiles storefront at Mathur Bus Stand"
+                loading="lazy" width={1600} height={1200}
+                className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShopLogo className="h-9 w-9" glow={false} />
+                  <div className="text-[10px] tracking-[0.3em] text-gold">OUR SHOP</div>
+                </div>
+                <div className="text-[10px] tracking-widest text-gold">MATHUR · 635203</div>
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] sm:text-xs tracking-[0.4em] text-gold mb-3">VISIT US IN PERSON</div>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl">Step Into Our <span className="gradient-gold-text">Showroom</span></h2>
+              <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+                Located right at Mathur Bus Stand, our flagship store has live demo units of the
+                latest OPPO, Vivo, Redmi & Realme phones, a full accessories wall and an in-house
+                repair workshop. Drop in any day — we'd love to help.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2">
+                <a href={MAPS} target="_blank" rel="noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full gradient-gold-bg text-background font-semibold text-sm shadow-gold hover:scale-105 transition">
+                  <MapPin className="h-4 w-4" /> Get Directions
+                </a>
+                <a href={TEL}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-full glass text-foreground text-sm hover:border-[color:var(--gold)] transition">
+                  <Phone className="h-4 w-4 text-gold" /> Call Now
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Lead Capture */}
+        <LeadCapture />
+
         {/* Contact */}
         <section id="contact" className="relative py-16 sm:py-24 px-4">
           <div className="max-w-6xl mx-auto">
@@ -544,11 +590,17 @@ function Index() {
           </div>
           <div className="max-w-6xl mx-auto mt-8 sm:mt-10 pt-6 border-t border-[color:var(--gold)]/10 flex flex-col sm:flex-row gap-2 items-center justify-between text-[11px] sm:text-xs text-muted-foreground text-center">
             <div>© {new Date().getFullYear()} Sri Madheshwara Mobiles. {t("rights")}</div>
-            <div className="gradient-gold-text">Designed for futuristic mobile commerce.</div>
+            <div className="flex items-center gap-4">
+              <Link to="/admin" className="inline-flex items-center gap-1 text-muted-foreground hover:text-gold transition">
+                <Lock className="h-3 w-3" /> Admin
+              </Link>
+              <span className="gradient-gold-text">Designed for futuristic mobile commerce.</span>
+            </div>
           </div>
         </footer>
 
         <WhatsAppFab />
+        <AIChatFab />
       </main>
     </>
   );
