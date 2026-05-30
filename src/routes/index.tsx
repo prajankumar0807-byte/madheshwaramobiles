@@ -10,7 +10,12 @@ import { ParticleField } from "@/components/ParticleField";
 import { TypingSlogan } from "@/components/TypingSlogan";
 import { Counter } from "@/components/Counter";
 import { WhatsAppFab } from "@/components/WhatsAppFab";
+import { AIChatFab } from "@/components/AIChatFab";
+import { LeadCapture } from "@/components/LeadCapture";
 import { useI18n, LanguageToggle, dict } from "@/lib/i18n";
+import shopFront from "@/assets/shop-front.jpg";
+import { Link } from "@tanstack/react-router";
+import { Lock } from "lucide-react";
 
 import productSmartphone from "@/assets/product-smartphone.jpg";
 import productAudio from "@/assets/product-audio.jpg";
