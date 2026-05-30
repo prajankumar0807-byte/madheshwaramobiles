@@ -8,21 +8,16 @@ export const VisitorCounter = () => {
   const bump = useServerFn(bumpVisit);
 
   useEffect(() => {
-    const key = "smm_visit_counted_v1";
-    const run = async () => {
+    let cancelled = false;
+    (async () => {
       try {
-        if (sessionStorage.getItem(key)) {
-          const r = await fetch("/_serverFn/getVisits").catch(() => null);
-          // fallback to bumping read-only path via bump (server-side increments anyway)
-        }
         const { visits } = await bump({});
-        if (!sessionStorage.getItem(key)) sessionStorage.setItem(key, "1");
-        setCount(visits);
+        if (!cancelled) setCount(visits);
       } catch {
         /* ignore */
       }
-    };
-    run();
+    })();
+    return () => { cancelled = true; };
   }, [bump]);
 
   if (count === null) return null;
