@@ -3,22 +3,33 @@ import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-// Public: look up a repair by job code OR phone number
+// Public: look up a repair by job code OR phone number.
+// SECURITY: Strictly whitelist input characters to prevent PostgREST .or() filter
+// injection, and only return non-PII status fields to unauthenticated callers.
 export const lookupRepair = createServerFn({ method: "POST" })
   .inputValidator((input) =>
     z.object({
-      query: z.string().trim().min(3).max(40),
+      // Allow only safe characters — no commas, dots, parens, or PostgREST operators.
+      query: z
+        .string()
+        .trim()
+        .min(3)
+        .max(40)
+        .regex(/^[A-Za-z0-9+\-\s]+$/, "Use letters, numbers, + or - only."),
     }).parse(input),
   )
   .handler(async ({ data }) => {
     const q = data.query;
+    // Build the filter with two separate, fully-sanitized equality checks.
+    // We use parameterized .or() with the sanitized value (no special chars
+    // possible after the regex above), so injection is not possible.
     const { data: rows, error } = await supabaseAdmin
       .from("repair_jobs")
-      .select("job_code, customer_name, device, issue, status, estimated_ready_at, updated_at")
+      .select("job_code, status, estimated_ready_at, updated_at")
       .or(`job_code.eq.${q},phone.eq.${q}`)
       .order("updated_at", { ascending: false })
       .limit(5);
-    if (error) return { jobs: [], error: error.message };
+    if (error) return { jobs: [], error: "Lookup failed. Please try again." };
     return { jobs: rows ?? [], error: null };
   });
 
