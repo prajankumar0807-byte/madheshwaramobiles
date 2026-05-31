@@ -102,6 +102,13 @@ function Dashboard() {
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] tracking-[0.4em] text-gold">DASHBOARD</div>
+            <div className="font-display text-xl gradient-gold-text">Welcome, M.V.MADHESH</div>
+          </div>
+          <VisitorStat />
+        </div>
         <div className="flex gap-2 mb-6">
           {(["repairs","feedback","offers"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
