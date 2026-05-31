@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
 import { generateOffers } from "@/lib/ai.functions";
+import { logAdminLogin, listAuditLogs } from "@/lib/audit.functions";
 import { ShopLogo } from "@/components/ShopLogo";
 import { Sparkles, LogOut } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
