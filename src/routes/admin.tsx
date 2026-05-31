@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
 import { generateOffers } from "@/lib/ai.functions";
+import { logAdminLogin, listAuditLogs } from "@/lib/audit.functions";
 import { ShopLogo } from "@/components/ShopLogo";
 import { Sparkles, LogOut } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
@@ -17,12 +18,16 @@ function AdminPage() {
   const [ready, setReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const check = useServerFn(checkAdmin);
+  const logLogin = useServerFn(logAdminLogin);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === "SIGNED_IN") logLogin().catch(() => {});
+    });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [logLogin]);
 
   useEffect(() => {
     if (session) check().then(r => setIsAdmin(r.isAdmin)).catch(() => setIsAdmin(false));
@@ -83,7 +88,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "feedback" | "offers">("repairs");
+  const [tab, setTab] = useState<"repairs" | "feedback" | "offers" | "audit">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
@@ -106,7 +111,7 @@ function Dashboard() {
           <VisitorStat />
         </div>
         <div className="flex gap-2 mb-6">
-          {(["repairs","feedback","offers"] as const).map(t => (
+          {(["repairs","feedback","offers","audit"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -116,6 +121,7 @@ function Dashboard() {
         {tab === "repairs" && <RepairsTab />}
         {tab === "feedback" && <FeedbackTab />}
         {tab === "offers" && <OffersTab />}
+        {tab === "audit" && <AuditTab />}
       </div>
     </div>
   );
@@ -216,6 +222,36 @@ function OffersTab() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+function AuditTab() {
+  const list = useServerFn(listAuditLogs);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [busy, setBusy] = useState(true);
+  useEffect(() => { list().then(r => setLogs(r.logs)).finally(() => setBusy(false)); }, [list]);
+  const fmt = (s: string) => new Date(s).toLocaleString();
+  const label: Record<string, string> = {
+    "admin.login": "🔐 Admin login",
+    "offers.generated": "✨ Offers sent",
+    "role.grant": "➕ Role granted",
+    "role.revoke": "➖ Role revoked",
+  };
+  return (
+    <div className="space-y-2">
+      {busy && <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>}
+      {!busy && logs.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No audit events yet.</p>}
+      {logs.map(l => (
+        <div key={l.id} className="glass-card rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="text-sm gradient-gold-text font-semibold">{label[l.action] ?? l.action}</div>
+            <div className="text-xs text-muted-foreground">{l.actor_email || l.actor_id || "system"}{l.target ? ` → ${l.target}` : ""}</div>
+            {l.details && <div className="text-[10px] text-muted-foreground mt-1 font-mono">{JSON.stringify(l.details)}</div>}
+          </div>
+          <span className="text-[10px] text-gold">{fmt(l.created_at)}</span>
+        </div>
+      ))}
     </div>
   );
 }
