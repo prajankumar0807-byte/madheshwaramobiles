@@ -225,3 +225,33 @@ function OffersTab() {
     </div>
   );
 }
+
+function AuditTab() {
+  const list = useServerFn(listAuditLogs);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [busy, setBusy] = useState(true);
+  useEffect(() => { list().then(r => setLogs(r.logs)).finally(() => setBusy(false)); }, [list]);
+  const fmt = (s: string) => new Date(s).toLocaleString();
+  const label: Record<string, string> = {
+    "admin.login": "🔐 Admin login",
+    "offers.generated": "✨ Offers sent",
+    "role.grant": "➕ Role granted",
+    "role.revoke": "➖ Role revoked",
+  };
+  return (
+    <div className="space-y-2">
+      {busy && <p className="text-center text-sm text-muted-foreground py-8">Loading…</p>}
+      {!busy && logs.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No audit events yet.</p>}
+      {logs.map(l => (
+        <div key={l.id} className="glass-card rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div className="text-sm gradient-gold-text font-semibold">{label[l.action] ?? l.action}</div>
+            <div className="text-xs text-muted-foreground">{l.actor_email || l.actor_id || "system"}{l.target ? ` → ${l.target}` : ""}</div>
+            {l.details && <div className="text-[10px] text-muted-foreground mt-1 font-mono">{JSON.stringify(l.details)}</div>}
+          </div>
+          <span className="text-[10px] text-gold">{fmt(l.created_at)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
