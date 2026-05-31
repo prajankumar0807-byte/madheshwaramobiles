@@ -252,9 +252,10 @@ function Index() {
             <Counter to={14} suffix="+" label={t("stat_years")} />
             <Counter to={300} suffix="+" label={t("stat_acc")} />
           </div>
-          <div className="max-w-6xl mx-auto px-4 mt-8 flex justify-center">
-            <VisitorCounter />
-          </div>
+          <VisitorBump />
+        </section>
+
+        <LiveOffers />
         </section>
 
         {/* About */}
