@@ -7,9 +7,6 @@ const STAGES = ["Received", "Under Diagnosis", "Repairing", "Completed", "Ready 
 
 type Job = {
   job_code: string;
-  customer_name: string;
-  device: string;
-  issue: string | null;
   status: string;
   estimated_ready_at: string | null;
   updated_at: string;
@@ -77,8 +74,8 @@ export const RepairTracker = () => {
                       <div className="font-display text-xl gradient-gold-text">{j.job_code}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">{j.customer_name}</div>
-                      <div className="text-sm font-medium">{j.device}</div>
+                      <div className="text-xs text-muted-foreground">CURRENT STATUS</div>
+                      <div className="text-sm font-medium text-gold">{j.status}</div>
                     </div>
                   </div>
                   <div className="h-2 rounded-full bg-secondary overflow-hidden mb-4">
