@@ -7,9 +7,6 @@ const STAGES = ["Received", "Under Diagnosis", "Repairing", "Completed", "Ready 
 
 type Job = {
   job_code: string;
-  customer_name: string;
-  device: string;
-  issue: string | null;
   status: string;
   estimated_ready_at: string | null;
   updated_at: string;
