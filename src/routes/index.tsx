@@ -16,11 +16,12 @@ import { useI18n, LanguageToggle, dict } from "@/lib/i18n";
 import shopFront from "@/assets/shop-front.jpg";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
-import { VisitorCounter } from "@/components/VisitorCounter";
+import { VisitorBump } from "@/components/VisitorCounter";
+import { LiveOffers } from "@/components/LiveOffers";
 import ownerImg from "@/assets/owner-madhesh.jpg";
 
 const GOOGLE_REVIEW_URL =
-  "https://www.google.com/maps/search/?api=1&query=Sri+Madheshwara+Mobiles+Mathur+Krishnagiri+635203";
+  "https://www.google.com/search?sca_esv=dd629fef2b47c84e&hl=en-IN&sxsrf=ANbL-n6hr5gRpxvtysQFIDCf_XkrUWhPtA:1780212809677&q=sri+madheshwara+mobiles+krishnagiri+mathur+reviews&uds=ALYpb_npVvcdf5ZGWpYpXvnW4SLa1fKDD85mojjlzrXj6WW07qxgOTUaJ5D8D7Oklfe5_XrYQD1H8AQgZyrfZ3polSDrLalweZwIzXFNYSq-LSMylaDpxdh_uXdPsLL3VJZYKur65C5bxIwBZYI6HcU5_HBt4GqMGmQQmKxa8YB16XIgL6-43KNczvFcASTGOeZFljQu7XHUU4UDLpQNwE4Ng1V0g2bybcBCtUy1k0nnRxjoIsHpjOFmE3vS9vKPnZ6-9q4pwp83gAG7edusoFH1Bxc4J4wbW6KDOs0ArZvcaBBYeSuLjnLa3fArXK7W7Dk7WD4OexXE632c--eR6tw6m1o_XTdN_z0DM57eFOiQVa1tlSDjRTzFLH1bfKT0Ti2CvIULIjF3AVqqXqDZXdmJD7J9MRY3ORdYZh8aud4F05cdL60lR-2hjyE9Yv1rUIeIjRe8AfmH8blYj-40X_60e5qy8nmMS17j8RLlCpyymgdcU0hecrw3zI0e7e6TvLaQwmqWCQd97x39F9SvJwuFR_HaRwFwcAHPg5KbXll1bvlbKR_Z9Q8Tzq24H8qPQeRBAxlX3xsO&si=AL3DRZEsmMGCryMMFSHJ3StBhOdZ2-6yYkXd_doETEE1OR-qORX2VPGGUuFeq36WQwrh8UkRHvaodXkby7nmTpMsDHYqY5Sq5pu3JXf6XRctDKDIaIkFDJnXQvRjXpzaO-0FDXNJPog75-ODtVoGGTwP2v41ffG_VtLJMY2FFAN-hTG3F0xoD64%3D&sa=X&ved=2ahUKEwjSxZTBgeOUAxVkR2cHHYIIF6oQk8gLegQIHxAB&ictx=1";
 
 import productSmartphone from "@/assets/product-smartphone.jpg";
 import productAudio from "@/assets/product-audio.jpg";
