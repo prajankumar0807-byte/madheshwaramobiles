@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeAudit } from "./audit.functions";
 
 const SYSTEM_PROMPT = `You are the SMM Assistant — a friendly, professional, helpful AI for Sri Madheshwara Mobiles, a trusted mobile shop in Mathur, Krishnagiri, established 2011.
 
