@@ -6,6 +6,9 @@ import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } fro
 import { generateOffers } from "@/lib/ai.functions";
 import { ShopLogo } from "@/components/ShopLogo";
 import { Sparkles, LogOut } from "lucide-react";
+import { VisitorStat } from "@/components/VisitorCounter";
+
+const ADMIN_EMAIL = "prajankumar0807@gmail.com";
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -44,6 +47,10 @@ function AuthForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setErr(null);
     try {
+      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
+        setErr("Access restricted. This dashboard is for the shop owner only.");
+        return;
+      }
       const { error } = mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password: pass })
         : await supabase.auth.signUp({ email, password: pass, options: { emailRedirectTo: window.location.origin + "/admin" } });
@@ -95,6 +102,13 @@ function Dashboard() {
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-[10px] tracking-[0.4em] text-gold">DASHBOARD</div>
+            <div className="font-display text-xl gradient-gold-text">Welcome, M.V.MADHESH</div>
+          </div>
+          <VisitorStat />
+        </div>
         <div className="flex gap-2 mb-6">
           {(["repairs","feedback","offers"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
