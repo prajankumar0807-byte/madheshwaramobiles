@@ -8,7 +8,7 @@ import { ShopLogo } from "@/components/ShopLogo";
 import { Sparkles, LogOut } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
-const ADMIN_EMAIL = "prajankumar0807@gmail.com";
+
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
