@@ -18,12 +18,16 @@ function AdminPage() {
   const [ready, setReady] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const check = useServerFn(checkAdmin);
+  const logLogin = useServerFn(logAdminLogin);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s);
+      if (event === "SIGNED_IN") logLogin().catch(() => {});
+    });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [logLogin]);
 
   useEffect(() => {
     if (session) check().then(r => setIsAdmin(r.isAdmin)).catch(() => setIsAdmin(false));
