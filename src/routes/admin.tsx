@@ -75,7 +75,7 @@ function AuthForm() {
         <button onClick={() => setMode(mode === "login" ? "signup" : "login")} className="mt-4 w-full text-xs text-muted-foreground hover:text-gold">
           {mode === "login" ? "First time? Create the admin account" : "Already have an account? Sign in"}
         </button>
-        <p className="mt-4 text-[10px] text-center text-muted-foreground">First account created becomes admin automatically.</p>
+        <p className="mt-4 text-[10px] text-center text-muted-foreground">Admin access is restricted. Contact the shop owner for credentials.</p>
         <Link to="/" className="mt-4 block text-center text-xs text-gold">← Back to website</Link>
       </div>
     </div>
