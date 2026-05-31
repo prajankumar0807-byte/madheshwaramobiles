@@ -47,10 +47,6 @@ function AuthForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setErr(null);
     try {
-      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-        setErr("Access restricted. This dashboard is for the shop owner only.");
-        return;
-      }
       const { error } = mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password: pass })
         : await supabase.auth.signUp({ email, password: pass, options: { emailRedirectTo: window.location.origin + "/admin" } });
