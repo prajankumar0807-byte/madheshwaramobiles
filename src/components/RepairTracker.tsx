@@ -74,8 +74,8 @@ export const RepairTracker = () => {
                       <div className="font-display text-xl gradient-gold-text">{j.job_code}</div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-muted-foreground">{j.customer_name}</div>
-                      <div className="text-sm font-medium">{j.device}</div>
+                      <div className="text-xs text-muted-foreground">CURRENT STATUS</div>
+                      <div className="text-sm font-medium text-gold">{j.status}</div>
                     </div>
                   </div>
                   <div className="h-2 rounded-full bg-secondary overflow-hidden mb-4">
