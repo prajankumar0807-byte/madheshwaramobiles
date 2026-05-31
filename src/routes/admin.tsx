@@ -8,7 +8,7 @@ import { ShopLogo } from "@/components/ShopLogo";
 import { Sparkles, LogOut } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
-const ADMIN_EMAIL = "prajankumar0807@gmail.com";
+
 
 export const Route = createFileRoute("/admin")({ component: AdminPage });
 
@@ -47,10 +47,6 @@ function AuthForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault(); setBusy(true); setErr(null);
     try {
-      if (email.trim().toLowerCase() !== ADMIN_EMAIL) {
-        setErr("Access restricted. This dashboard is for the shop owner only.");
-        return;
-      }
       const { error } = mode === "login"
         ? await supabase.auth.signInWithPassword({ email, password: pass })
         : await supabase.auth.signUp({ email, password: pass, options: { emailRedirectTo: window.location.origin + "/admin" } });
@@ -79,7 +75,7 @@ function AuthForm() {
         <button onClick={() => setMode(mode === "login" ? "signup" : "login")} className="mt-4 w-full text-xs text-muted-foreground hover:text-gold">
           {mode === "login" ? "First time? Create the admin account" : "Already have an account? Sign in"}
         </button>
-        <p className="mt-4 text-[10px] text-center text-muted-foreground">First account created becomes admin automatically.</p>
+        <p className="mt-4 text-[10px] text-center text-muted-foreground">Admin access is restricted. Contact the shop owner for credentials.</p>
         <Link to="/" className="mt-4 block text-center text-xs text-gold">← Back to website</Link>
       </div>
     </div>

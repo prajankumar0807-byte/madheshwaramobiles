@@ -103,12 +103,19 @@ export const chatWithAI = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const key = process.env.LOVABLE_API_KEY;
     if (!key) throw new Error("AI is not configured.");
+    // Security: only trust user turns from the client. Drop any client-supplied
+    // assistant messages to prevent prompt-injection via fabricated history.
+    const userTurns = data.messages.filter(m => m.role === "user").slice(-10);
+    if (userTurns.length === 0) return { reply: "Please ask me a question!", error: null };
+    // Cap total payload to prevent credit exhaustion
+    const totalChars = userTurns.reduce((n, m) => n + m.content.length, 0);
+    if (totalChars > 4000) return { reply: "Your message is too long. Please shorten it.", error: "too_long" };
     const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...data.messages],
+        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...userTurns],
       }),
     });
     if (res.status === 429) return { reply: "Sorry, I'm getting a lot of questions right now. Please try again in a moment!", error: "rate_limited" };
