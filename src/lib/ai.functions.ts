@@ -88,6 +88,13 @@ export const generateOffers = createServerFn({ method: "POST" })
     const rows = parsed.offers.map(o => ({ ...o, active: true }));
     const { error } = await supabaseAdmin.from("offers").insert(rows);
     if (error) throw new Error(error.message);
+    const { data: u } = await supabase.auth.getUser();
+    await writeAudit({
+      actor_id: userId,
+      actor_email: u.user?.email ?? null,
+      action: "offers.generated",
+      details: { theme: data.theme, count: rows.length, titles: rows.map(r => r.title) },
+    });
     return { created: rows.length };
   });
 
