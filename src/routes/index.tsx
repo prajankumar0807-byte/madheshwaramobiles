@@ -256,7 +256,6 @@ function Index() {
         </section>
 
         <LiveOffers />
-        </section>
 
         {/* About */}
         <section id="about" className="relative py-16 sm:py-24 px-4">
