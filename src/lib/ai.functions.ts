@@ -118,14 +118,6 @@ export const chatWithAI = createServerFn({ method: "POST" })
         messages: [{ role: "system", content: SYSTEM_PROMPT }, ...userTurns],
       }),
     });
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...data.messages],
-      }),
-    });
     if (res.status === 429) return { reply: "Sorry, I'm getting a lot of questions right now. Please try again in a moment!", error: "rate_limited" };
     if (res.status === 402) return { reply: "AI service unavailable right now. Please WhatsApp us at +91 81249 95343!", error: "payment_required" };
     if (!res.ok) return { reply: "Something went wrong on my side. Please WhatsApp +91 81249 95343 for instant help!", error: `http_${res.status}` };
