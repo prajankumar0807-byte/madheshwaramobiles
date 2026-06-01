@@ -183,7 +183,6 @@ function FeedbackTab() {
 }
 
 // OffersTab removed — AI-generated offers feature retired per request.
-}
 
 function AuditTab() {
   const list = useServerFn(listAuditLogs);
