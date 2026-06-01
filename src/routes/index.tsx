@@ -255,7 +255,7 @@ function Index() {
           <VisitorBump />
         </section>
 
-        <LiveOffers />
+        {/* Live offers section removed */}
 
         {/* About */}
         <section id="about" className="relative py-16 sm:py-24 px-4">
