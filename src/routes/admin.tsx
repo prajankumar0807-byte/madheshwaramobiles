@@ -182,46 +182,7 @@ function FeedbackTab() {
   );
 }
 
-function OffersTab() {
-  const gen = useServerFn(generateOffers);
-  const [theme, setTheme] = useState("Diwali festival sale"); const [busy, setBusy] = useState(false); const [msg, setMsg] = useState<string | null>(null);
-  const [offers, setOffers] = useState<any[]>([]);
-  const refresh = () => supabase.from("offers").select("*").order("created_at", { ascending: false }).then(({ data }) => setOffers(data ?? []));
-  useEffect(() => { refresh(); }, []);
-  const run = async () => { setBusy(true); setMsg(null);
-    try { const r = await gen({ data: { theme } }); setMsg(`✨ Created ${r.created} offers`); refresh(); }
-    catch (e: any) { setMsg(e?.message ?? "Failed"); } finally { setBusy(false); }
-  };
-  const toggle = async (id: string, active: boolean) => { await supabase.from("offers").update({ active: !active }).eq("id", id); refresh(); };
-  return (
-    <div className="space-y-6">
-      <div className="glass-card rounded-2xl p-4 flex flex-wrap gap-2 items-center">
-        <Sparkles className="h-4 w-4 text-gold" />
-        <input value={theme} onChange={e => setTheme(e.target.value)} placeholder="Theme (e.g. Diwali sale)"
-          className="flex-1 min-w-[200px] rounded-lg bg-secondary/60 px-3 py-2 text-sm" />
-        <button onClick={run} disabled={busy} className="px-4 py-2 rounded-lg gradient-gold-bg text-background font-semibold text-sm disabled:opacity-50">
-          {busy ? "Generating…" : "AI Generate Offers"}
-        </button>
-        {msg && <span className="text-xs text-gold">{msg}</span>}
-      </div>
-      <div className="grid sm:grid-cols-2 gap-3">
-        {offers.map(o => (
-          <div key={o.id} className={`glass-card rounded-xl p-4 ${!o.active && "opacity-50"}`}>
-            <div className="flex justify-between items-start gap-2">
-              <div>
-                {o.badge && <div className="text-[10px] tracking-widest text-gold mb-1">{o.badge}</div>}
-                <div className="font-display gradient-gold-text">{o.title}</div>
-                <p className="text-xs text-muted-foreground mt-1">{o.description}</p>
-              </div>
-              <button onClick={() => toggle(o.id, o.active)} className="text-[10px] uppercase tracking-widest text-gold">
-                {o.active ? "Disable" : "Enable"}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+// OffersTab removed — AI-generated offers feature retired per request.
 }
 
 function AuditTab() {
