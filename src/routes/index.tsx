@@ -17,7 +17,7 @@ import shopFront from "@/assets/shop-front.jpg";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { VisitorBump } from "@/components/VisitorCounter";
-import { LiveOffers } from "@/components/LiveOffers";
+// LiveOffers removed per request
 import ownerImg from "@/assets/owner-madhesh.jpg";
 
 const GOOGLE_REVIEW_URL =
@@ -255,7 +255,7 @@ function Index() {
           <VisitorBump />
         </section>
 
-        <LiveOffers />
+        {/* Live offers section removed */}
 
         {/* About */}
         <section id="about" className="relative py-16 sm:py-24 px-4">
@@ -638,6 +638,11 @@ function Index() {
               </Link>
               <span className="gradient-gold-text">Designed for futuristic mobile commerce.</span>
             </div>
+          </div>
+          <div className="max-w-6xl mx-auto mt-6 pt-4 border-t border-[color:var(--gold)]/10 text-center">
+            <p className="text-[11px] sm:text-xs tracking-[0.3em] uppercase gradient-gold-text font-display">
+              This website is created by PRAJAN KUMAR MADHESH
+            </p>
           </div>
         </footer>
 
