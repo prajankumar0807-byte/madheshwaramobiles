@@ -22,6 +22,9 @@ export type Database = {
           created_at: string
           details: Json | null
           id: string
+          prev_hash: string | null
+          row_hash: string | null
+          seq: number
           target: string | null
         }
         Insert: {
@@ -31,6 +34,9 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
+          prev_hash?: string | null
+          row_hash?: string | null
+          seq?: number
           target?: string | null
         }
         Update: {
@@ -40,6 +46,9 @@ export type Database = {
           created_at?: string
           details?: Json | null
           id?: string
+          prev_hash?: string | null
+          row_hash?: string | null
+          seq?: number
           target?: string | null
         }
         Relationships: []
