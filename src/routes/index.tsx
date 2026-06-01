@@ -639,6 +639,11 @@ function Index() {
               <span className="gradient-gold-text">Designed for futuristic mobile commerce.</span>
             </div>
           </div>
+          <div className="max-w-6xl mx-auto mt-6 pt-4 border-t border-[color:var(--gold)]/10 text-center">
+            <p className="text-[11px] sm:text-xs tracking-[0.3em] uppercase gradient-gold-text font-display">
+              This website is created by PRAJAN KUMAR MADHESH
+            </p>
+          </div>
         </footer>
 
         <WhatsAppFab />
