@@ -17,7 +17,7 @@ import shopFront from "@/assets/shop-front.jpg";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { VisitorBump } from "@/components/VisitorCounter";
-import { LiveOffers } from "@/components/LiveOffers";
+// LiveOffers removed per request
 import ownerImg from "@/assets/owner-madhesh.jpg";
 
 const GOOGLE_REVIEW_URL =
