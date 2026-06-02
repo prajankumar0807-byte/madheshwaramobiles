@@ -153,3 +153,82 @@ export const exportAuditLogs = createServerFn({ method: "POST" })
     });
     return { csv: lines.join("\n"), rows: rows?.length ?? 0 };
   });
+
+// Heuristic security alerts: rapid logins, unknown accounts, hash-chain gaps.
+export const getSecurityAlerts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { data, error } = await supabaseAdmin
+      .from("audit_logs" as any).select("*").order("seq", { ascending: true });
+    if (error) throw new Error(error.message);
+    const rows = (data ?? []) as any[];
+
+    const alerts: { level: "high" | "medium" | "low"; type: string; message: string; at?: string }[] = [];
+
+    // 1. Hash-chain & sequence gaps
+    let prev = "GENESIS"; let lastSeq = 0;
+    for (const r of rows) {
+      if (lastSeq && r.seq !== lastSeq + 1) {
+        alerts.push({ level: "high", type: "audit_gap",
+          message: `Audit entries ${lastSeq + 1}..${r.seq - 1} are missing (possible deletion).`, at: r.created_at });
+      }
+      const payload = [r.seq, r.created_at, r.action, r.actor_id ?? "", r.actor_email ?? "",
+        r.target ?? "", r.details ? JSON.stringify(r.details) : "", prev].join("|");
+      const expected = createHash("sha256").update(payload).digest("hex");
+      if (r.row_hash && r.row_hash !== expected) {
+        alerts.push({ level: "high", type: "hash_mismatch",
+          message: `Audit row #${r.seq} hash does not match — entry was modified.`, at: r.created_at });
+      }
+      prev = r.row_hash ?? prev;
+      lastSeq = r.seq;
+    }
+
+    // 2. Suspicious login patterns — only "admin.login" rows
+    const logins = rows.filter(r => r.action === "admin.login");
+    const since = Date.now() - 24 * 3600 * 1000;
+    const recent = logins.filter(l => new Date(l.created_at).getTime() > since);
+
+    // Burst: 5+ logins from same actor in 10 minutes
+    const byActor = new Map<string, any[]>();
+    for (const l of logins) {
+      const key = l.actor_email || l.actor_id || "unknown";
+      if (!byActor.has(key)) byActor.set(key, []);
+      byActor.get(key)!.push(l);
+    }
+    for (const [actor, list] of byActor) {
+      list.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+      for (let i = 4; i < list.length; i++) {
+        const dt = new Date(list[i].created_at).getTime() - new Date(list[i - 4].created_at).getTime();
+        if (dt < 10 * 60 * 1000) {
+          alerts.push({ level: "high", type: "login_burst",
+            message: `${actor} signed in 5+ times within 10 minutes — possible brute-force or token theft.`,
+            at: list[i].created_at });
+          break;
+        }
+      }
+      // Off-hours (00:00–05:00 local server time)
+      const offHours = list.filter(l => {
+        const h = new Date(l.created_at).getUTCHours();
+        return h >= 0 && h < 5;
+      });
+      if (offHours.length >= 2) {
+        alerts.push({ level: "medium", type: "off_hours_login",
+          message: `${actor} has ${offHours.length} sign-ins during off-hours (00:00–05:00 UTC).`,
+          at: offHours[offHours.length - 1].created_at });
+      }
+    }
+
+    if (recent.length >= 20) {
+      alerts.push({ level: "medium", type: "high_volume",
+        message: `${recent.length} admin sign-ins in the last 24h — unusually high.` });
+    }
+
+    return {
+      total_logins: logins.length,
+      logins_24h: recent.length,
+      audit_entries: rows.length,
+      alerts,
+    };
+  });

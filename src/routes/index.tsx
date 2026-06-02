@@ -17,6 +17,7 @@ import shopFront from "@/assets/shop-front.jpg";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { VisitorBump } from "@/components/VisitorCounter";
+import { useDataSaver } from "@/hooks/use-data-saver";
 // LiveOffers removed per request
 import ownerImg from "@/assets/owner-madhesh.jpg";
 
@@ -106,6 +107,7 @@ function Index() {
   const { t, lang } = useI18n();
   const [loaded, setLoaded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const lowData = useDataSaver();
   useEffect(() => {
     const tm = setTimeout(() => setLoaded(true), 1400);
     return () => clearTimeout(tm);
@@ -186,7 +188,7 @@ function Index() {
 
         {/* Hero */}
         <section id="top" className="relative min-h-[100svh] pt-20 sm:pt-24 pb-12 sm:pb-16 flex items-center overflow-hidden">
-          <ParticleField />
+          {!lowData && <ParticleField />}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(232,196,108,0.18),transparent_60%)] pointer-events-none" />
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 grid md:grid-cols-2 gap-8 md:gap-10 items-center w-full">
             <div className="animate-rise text-center md:text-left">
