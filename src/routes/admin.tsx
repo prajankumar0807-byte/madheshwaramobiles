@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
-import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs } from "@/lib/audit.functions";
+import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs, getSecurityAlerts } from "@/lib/audit.functions";
 import { ShopLogo } from "@/components/ShopLogo";
-import { LogOut, ShieldCheck, ShieldAlert, Download, FileText } from "lucide-react";
+import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
 
@@ -87,7 +87,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "feedback" | "audit">("repairs");
+  const [tab, setTab] = useState<"repairs" | "feedback" | "audit" | "alerts">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
@@ -109,8 +109,8 @@ function Dashboard() {
           </div>
           <VisitorStat />
         </div>
-        <div className="flex gap-2 mb-6">
-          {(["repairs","feedback","audit"] as const).map(t => (
+        <div className="flex gap-2 mb-6 flex-wrap">
+          {(["repairs","feedback","audit","alerts"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -120,6 +120,56 @@ function Dashboard() {
         {tab === "repairs" && <RepairsTab />}
         {tab === "feedback" && <FeedbackTab />}
         {tab === "audit" && <AuditTab />}
+        {tab === "alerts" && <AlertsTab />}
+      </div>
+    </div>
+  );
+}
+
+function AlertsTab() {
+  const fetchAlerts = useServerFn(getSecurityAlerts);
+  const [data, setData] = useState<any>(null);
+  const [busy, setBusy] = useState(true);
+  const refresh = () => { setBusy(true); fetchAlerts().then(setData).finally(() => setBusy(false)); };
+  useEffect(() => { refresh(); }, []);
+  const tone = (l: string) => l === "high" ? "border-destructive/60 text-destructive"
+    : l === "medium" ? "border-amber-500/50 text-amber-400" : "border-muted/40 text-muted-foreground";
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-3 gap-2">
+        <div className="glass-card rounded-xl p-3 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Audit entries</div>
+          <div className="font-display gradient-gold-text text-2xl">{data?.audit_entries ?? "—"}</div>
+        </div>
+        <div className="glass-card rounded-xl p-3 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Logins 24h</div>
+          <div className="font-display gradient-gold-text text-2xl">{data?.logins_24h ?? "—"}</div>
+        </div>
+        <div className="glass-card rounded-xl p-3 text-center">
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Open alerts</div>
+          <div className="font-display gradient-gold-text text-2xl">{data?.alerts?.length ?? "—"}</div>
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <button onClick={refresh} disabled={busy} className="px-3 py-1 rounded-full glass-card text-xs hover:text-gold disabled:opacity-50">
+          {busy ? "Scanning…" : "Re-scan"}
+        </button>
+      </div>
+      {!busy && (data?.alerts?.length ?? 0) === 0 && (
+        <div className="glass-card rounded-xl p-6 text-center text-sm text-emerald-400 inline-flex items-center justify-center gap-2 w-full">
+          <ShieldCheck className="h-4 w-4" /> No suspicious activity detected.
+        </div>
+      )}
+      <div className="space-y-2">
+        {data?.alerts?.map((a: any, i: number) => (
+          <div key={i} className={`glass-card rounded-xl p-3 border ${tone(a.level)}`}>
+            <div className="flex items-center gap-2 text-xs uppercase tracking-widest">
+              <AlertTriangle className="h-3 w-3" /> {a.level} · {a.type}
+            </div>
+            <p className="text-sm mt-1 text-foreground">{a.message}</p>
+            {a.at && <p className="text-[10px] text-muted-foreground mt-1">{new Date(a.at).toLocaleString()}</p>}
+          </div>
+        ))}
       </div>
     </div>
   );
