@@ -107,6 +107,7 @@ function Index() {
   const { t, lang } = useI18n();
   const [loaded, setLoaded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const lowData = useDataSaver();
   useEffect(() => {
     const tm = setTimeout(() => setLoaded(true), 1400);
     return () => clearTimeout(tm);
