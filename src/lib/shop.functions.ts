@@ -58,7 +58,10 @@ export const submitFeedback = createServerFn({ method: "POST" })
       message: data.message,
       sentiment,
     });
-    if (error) return { ok: false, error: error.message };
+    if (error) {
+      console.error("[feedback] insert error", error);
+      return { ok: false, error: "Could not submit feedback. Please try again." };
+    }
     return { ok: true };
   });
 
