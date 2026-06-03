@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
 import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs, getSecurityAlerts } from "@/lib/audit.functions";
+import { runSecurityScan, listSecurityScans, getLatestSecurityScan } from "@/lib/security.functions";
 import { ShopLogo } from "@/components/ShopLogo";
-import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle } from "lucide-react";
+import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
 
