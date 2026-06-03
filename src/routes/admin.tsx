@@ -241,22 +241,6 @@ function Stat({ label, value, tone, icon }: { label: string; value: number; tone
     </div>
   );
 }
-        <div className="flex gap-2 mb-6 flex-wrap">
-          {(["repairs","feedback","audit","alerts"] as const).map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
-              {t}
-            </button>
-          ))}
-        </div>
-        {tab === "repairs" && <RepairsTab />}
-        {tab === "feedback" && <FeedbackTab />}
-        {tab === "audit" && <AuditTab />}
-        {tab === "alerts" && <AlertsTab />}
-      </div>
-    </div>
-  );
-}
 
 function AlertsTab() {
   const fetchAlerts = useServerFn(getSecurityAlerts);
