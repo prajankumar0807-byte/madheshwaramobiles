@@ -155,6 +155,57 @@ export type Database = {
         }
         Relationships: []
       }
+      security_scans: {
+        Row: {
+          auto_fixed_count: number
+          created_at: string
+          diff: Json
+          findings: Json
+          high_count: number
+          id: string
+          low_count: number
+          medium_count: number
+          new_count: number
+          resolved_count: number
+          run_by: string | null
+          run_by_email: string | null
+          total: number
+          trigger: string
+        }
+        Insert: {
+          auto_fixed_count?: number
+          created_at?: string
+          diff?: Json
+          findings?: Json
+          high_count?: number
+          id?: string
+          low_count?: number
+          medium_count?: number
+          new_count?: number
+          resolved_count?: number
+          run_by?: string | null
+          run_by_email?: string | null
+          total?: number
+          trigger?: string
+        }
+        Update: {
+          auto_fixed_count?: number
+          created_at?: string
+          diff?: Json
+          findings?: Json
+          high_count?: number
+          id?: string
+          low_count?: number
+          medium_count?: number
+          new_count?: number
+          resolved_count?: number
+          run_by?: string | null
+          run_by_email?: string | null
+          total?: number
+          trigger?: string
+        }
+        Relationships: []
+      }
       site_stats: {
         Row: {
           id: number
@@ -207,6 +258,19 @@ export type Database = {
         Returns: boolean
       }
       increment_site_visits: { Args: never; Returns: number }
+      sec_enable_rls: { Args: { _table: string }; Returns: boolean }
+      sec_tables_missing_service_grants: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
+      sec_tables_without_rls: {
+        Args: never
+        Returns: {
+          table_name: string
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "user"

@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
 import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs, getSecurityAlerts } from "@/lib/audit.functions";
+import { runSecurityScan, listSecurityScans, getLatestSecurityScan } from "@/lib/security.functions";
 import { ShopLogo } from "@/components/ShopLogo";
-import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle } from "lucide-react";
+import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
 
@@ -87,7 +88,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "feedback" | "audit" | "alerts">("repairs");
+  const [tab, setTab] = useState<"repairs" | "feedback" | "audit" | "alerts" | "security">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
@@ -110,7 +111,7 @@ function Dashboard() {
           <VisitorStat />
         </div>
         <div className="flex gap-2 mb-6 flex-wrap">
-          {(["repairs","feedback","audit","alerts"] as const).map(t => (
+          {(["repairs","feedback","audit","alerts","security"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -121,7 +122,122 @@ function Dashboard() {
         {tab === "feedback" && <FeedbackTab />}
         {tab === "audit" && <AuditTab />}
         {tab === "alerts" && <AlertsTab />}
+        {tab === "security" && <SecurityTab />}
       </div>
+    </div>
+  );
+}
+
+function SecurityTab() {
+  const runScan = useServerFn(runSecurityScan);
+  const listScans = useServerFn(listSecurityScans);
+  const getLatest = useServerFn(getLatestSecurityScan);
+  const [latest, setLatest] = useState<any>(null);
+  const [history, setHistory] = useState<any[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [autoFixBusy, setAutoFixBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const refresh = async () => {
+    const [l, h] = await Promise.all([getLatest(), listScans()]);
+    setLatest(l.scan); setHistory(h.scans);
+  };
+  useEffect(() => { refresh(); }, []);
+
+  const scan = async (autoFix = false) => {
+    setErr(null);
+    autoFix ? setAutoFixBusy(true) : setBusy(true);
+    try {
+      await runScan({ data: { autoFix, trigger: autoFix ? "auto-fix" : "manual" } });
+      await refresh();
+    } catch (e: any) { setErr(e?.message ?? "Scan failed"); }
+    finally { setBusy(false); setAutoFixBusy(false); }
+  };
+
+  const sevColor = (s: string) => s === "high" ? "border-destructive/60 text-destructive bg-destructive/5"
+    : s === "medium" ? "border-amber-500/50 text-amber-400 bg-amber-500/5"
+    : "border-muted/40 text-muted-foreground";
+
+  const findings: any[] = latest?.findings ?? [];
+  const diff = latest?.diff ?? { new: [], resolved: [] };
+  const newSet = new Set(diff.new ?? []);
+
+  return (
+    <div className="space-y-6">
+      <div className="glass-card rounded-2xl p-4 flex flex-wrap items-center gap-3">
+        <button onClick={() => scan(false)} disabled={busy || autoFixBusy}
+          className="px-4 py-2 rounded-lg gradient-gold-bg text-background text-xs font-semibold inline-flex items-center gap-2 disabled:opacity-50">
+          <Play className="h-3 w-3" /> {busy ? "Scanning…" : "Run scan now"}
+        </button>
+        <button onClick={() => scan(true)} disabled={busy || autoFixBusy}
+          className="px-4 py-2 rounded-lg glass-card text-xs inline-flex items-center gap-2 hover:text-gold disabled:opacity-50">
+          <Wrench className="h-3 w-3" /> {autoFixBusy ? "Fixing & re-scanning…" : "Auto-fix safe issues"}
+        </button>
+        {err && <span className="text-xs text-destructive">{err}</span>}
+        {latest && <span className="text-[10px] text-muted-foreground ml-auto">Last scan {new Date(latest.created_at).toLocaleString()}</span>}
+      </div>
+
+      {latest && (
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <Stat label="Total" value={latest.total} />
+          <Stat label="High" value={latest.high_count} tone="text-destructive" />
+          <Stat label="Medium" value={latest.medium_count} tone="text-amber-400" />
+          <Stat label="New" value={latest.new_count} tone="text-destructive" icon={<TrendingUp className="h-3 w-3" />} />
+          <Stat label="Resolved" value={latest.resolved_count} tone="text-emerald-400" icon={<TrendingDown className="h-3 w-3" />} />
+        </div>
+      )}
+
+      {latest && findings.length === 0 && (
+        <div className="glass-card rounded-xl p-6 text-center text-sm text-emerald-400 inline-flex items-center justify-center gap-2 w-full">
+          <ShieldCheck className="h-4 w-4" /> No security issues detected.
+        </div>
+      )}
+
+      <div className="space-y-2">
+        {findings.map((f) => (
+          <div key={f.id} className={`glass-card rounded-xl p-3 border ${sevColor(f.severity)}`}>
+            <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest">
+              <AlertTriangle className="h-3 w-3" /> {f.severity} · {f.category}
+              {newSet.has(f.id) && <span className="px-1.5 py-0.5 rounded bg-destructive/20 text-destructive">NEW</span>}
+              {f.auto_fixable && <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400">auto-fixable</span>}
+            </div>
+            <p className="text-sm mt-1 text-foreground font-semibold">{f.title}</p>
+            {f.file && <p className="text-[10px] font-mono text-muted-foreground mt-1">{f.file}</p>}
+            <p className="text-xs mt-2 text-muted-foreground"><span className="text-gold">Fix:</span> {f.recommendation}</p>
+          </div>
+        ))}
+      </div>
+
+      {history.length > 0 && (
+        <div>
+          <div className="text-[10px] tracking-[0.4em] text-gold mb-2 inline-flex items-center gap-1"><History className="h-3 w-3" /> SCAN HISTORY</div>
+          <div className="space-y-1">
+            {history.map(h => (
+              <div key={h.id} className="glass-card rounded-lg p-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="text-muted-foreground">{new Date(h.created_at).toLocaleString()}</span>
+                <span className="text-[10px] uppercase tracking-widest text-gold">{h.trigger}</span>
+                <span>
+                  <span className="text-destructive">{h.high_count}H</span>{" · "}
+                  <span className="text-amber-400">{h.medium_count}M</span>{" · "}
+                  <span className="text-muted-foreground">{h.low_count}L</span>
+                </span>
+                <span className={h.new_count > 0 ? "text-destructive" : "text-muted-foreground"}>+{h.new_count} new</span>
+                <span className="text-emerald-400">−{h.resolved_count} resolved</span>
+                {h.auto_fixed_count > 0 && <span className="text-emerald-400">🔧 {h.auto_fixed_count}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Stat({ label, value, tone, icon }: { label: string; value: number; tone?: string; icon?: React.ReactNode }) {
+  return (
+    <div className="glass-card rounded-xl p-3 text-center">
+      <div className="text-[10px] uppercase tracking-widest text-muted-foreground inline-flex items-center justify-center gap-1">{icon}{label}</div>
+      <div className={`font-display text-2xl ${tone ?? "gradient-gold-text"}`}>{value ?? 0}</div>
     </div>
   );
 }
