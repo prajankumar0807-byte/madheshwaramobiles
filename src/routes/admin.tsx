@@ -88,7 +88,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "feedback" | "audit" | "alerts" | "security">("repairs");
+  const [tab, setTab] = useState<"repairs" | "offers" | "feedback" | "audit" | "alerts" | "security">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
