@@ -111,7 +111,7 @@ function Dashboard() {
           <VisitorStat />
         </div>
         <div className="flex gap-2 mb-6 flex-wrap">
-          {(["repairs","feedback","audit","alerts","security"] as const).map(t => (
+          {(["repairs","offers","feedback","audit","alerts","security"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -119,6 +119,7 @@ function Dashboard() {
           ))}
         </div>
         {tab === "repairs" && <RepairsTab />}
+        {tab === "offers" && <OffersTab />}
         {tab === "feedback" && <FeedbackTab />}
         {tab === "audit" && <AuditTab />}
         {tab === "alerts" && <AlertsTab />}
