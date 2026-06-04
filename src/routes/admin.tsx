@@ -2,11 +2,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
-import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin } from "@/lib/shop.functions";
+import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin, listOffers, createOffer, toggleOffer, deleteOffer } from "@/lib/shop.functions";
 import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs, getSecurityAlerts } from "@/lib/audit.functions";
 import { runSecurityScan, listSecurityScans, getLatestSecurityScan } from "@/lib/security.functions";
 import { ShopLogo } from "@/components/ShopLogo";
-import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown } from "lucide-react";
+import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown, Megaphone, Trash2, Tag } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
 
@@ -88,7 +88,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "feedback" | "audit" | "alerts" | "security">("repairs");
+  const [tab, setTab] = useState<"repairs" | "offers" | "feedback" | "audit" | "alerts" | "security">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
@@ -111,7 +111,7 @@ function Dashboard() {
           <VisitorStat />
         </div>
         <div className="flex gap-2 mb-6 flex-wrap">
-          {(["repairs","feedback","audit","alerts","security"] as const).map(t => (
+          {(["repairs","offers","feedback","audit","alerts","security"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -119,6 +119,7 @@ function Dashboard() {
           ))}
         </div>
         {tab === "repairs" && <RepairsTab />}
+        {tab === "offers" && <OffersTab />}
         {tab === "feedback" && <FeedbackTab />}
         {tab === "audit" && <AuditTab />}
         {tab === "alerts" && <AlertsTab />}
@@ -327,6 +328,104 @@ function RepairsTab() {
     </div>
   );
 }
+
+function OffersTab() {
+  const list = useServerFn(listOffers);
+  const create = useServerFn(createOffer);
+  const toggle = useServerFn(toggleOffer);
+  const del = useServerFn(deleteOffer);
+  const [offers, setOffers] = useState<any[]>([]);
+  const [form, setForm] = useState({ title: "", description: "", badge: "", expires_at: "" });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  const refresh = () => list().then(r => setOffers(r.offers)).catch(() => {});
+  useEffect(() => { refresh(); }, []);
+
+  const announce = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true); setErr(null);
+    try {
+      const payload: any = {
+        title: form.title,
+        description: form.description,
+        active: true,
+      };
+      if (form.badge.trim()) payload.badge = form.badge.trim();
+      if (form.expires_at) payload.expires_at = new Date(form.expires_at).toISOString();
+      await create({ data: payload });
+      setForm({ title: "", description: "", badge: "", expires_at: "" });
+      refresh();
+    } catch (e: any) { setErr(e?.message ?? "Could not announce offer"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={announce} className="glass-card rounded-2xl p-4 space-y-3">
+        <div className="text-[10px] tracking-[0.4em] text-gold inline-flex items-center gap-2">
+          <Megaphone className="h-3 w-3" /> ANNOUNCE A NEW OFFER
+        </div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          <input required maxLength={80} placeholder="Offer title (e.g. iPhone screen repair 20% off)"
+            value={form.title} onChange={e=>setForm({...form,title:e.target.value})}
+            className="rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-sm" />
+          <input maxLength={20} placeholder="Badge (e.g. HOT, NEW, -20%)"
+            value={form.badge} onChange={e=>setForm({...form,badge:e.target.value})}
+            className="rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-sm" />
+        </div>
+        <textarea required maxLength={300} rows={2} placeholder="Short description shown to customers"
+          value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
+          className="w-full rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-sm" />
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="text-[10px] text-muted-foreground uppercase tracking-widest">Expires</label>
+          <input type="datetime-local" value={form.expires_at} onChange={e=>setForm({...form,expires_at:e.target.value})}
+            className="rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-xs" />
+          <button disabled={busy} className="ml-auto px-4 py-2 rounded-lg gradient-gold-bg text-background text-xs font-semibold inline-flex items-center gap-2 disabled:opacity-50">
+            <Megaphone className="h-3 w-3" /> {busy ? "Publishing…" : "Publish offer"}
+          </button>
+        </div>
+        {err && <p className="text-xs text-destructive">{err}</p>}
+      </form>
+
+      <div className="space-y-2">
+        {offers.map(o => {
+          const expired = o.expires_at && new Date(o.expires_at) < new Date();
+          return (
+            <div key={o.id} className={`glass-card rounded-xl p-4 flex flex-wrap gap-3 items-start justify-between ${!o.active || expired ? "opacity-60" : ""}`}>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {o.badge && <span className="text-[10px] gradient-gold-bg text-background px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><Tag className="h-3 w-3" />{o.badge}</span>}
+                  <span className="font-display gradient-gold-text">{o.title}</span>
+                  {!o.active && <span className="text-[10px] uppercase text-muted-foreground">paused</span>}
+                  {expired && <span className="text-[10px] uppercase text-destructive">expired</span>}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">{o.description}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  Posted {new Date(o.created_at).toLocaleString()}
+                  {o.expires_at && ` · expires ${new Date(o.expires_at).toLocaleString()}`}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={async () => { await toggle({ data: { id: o.id, active: !o.active } }); refresh(); }}
+                  className="px-3 py-1 rounded-full glass-card text-[10px] uppercase tracking-widest hover:text-gold">
+                  {o.active ? "Pause" : "Resume"}
+                </button>
+                <button onClick={async () => { if (confirm("Delete this offer?")) { await del({ data: { id: o.id } }); refresh(); } }}
+                  className="p-2 rounded-full glass-card hover:text-destructive" aria-label="Delete offer">
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {offers.length === 0 && <p className="text-center text-sm text-muted-foreground py-8">No offers announced yet.</p>}
+      </div>
+    </div>
+  );
+}
+
+
 
 function FeedbackTab() {
   const list = useServerFn(listFeedback); const [items, setItems] = useState<any[]>([]);

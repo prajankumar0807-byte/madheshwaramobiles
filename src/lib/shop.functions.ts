@@ -153,3 +153,73 @@ export const checkAdmin = createServerFn({ method: "GET" })
     const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
     return { isAdmin: !!data };
   });
+
+async function assertAdmin(supabase: any, userId: string) {
+  const { data } = await supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle();
+  if (!data) throw new Error("Forbidden");
+}
+
+// Admin: list all offers (active + inactive)
+export const listOffers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { data, error } = await supabaseAdmin
+      .from("offers").select("*").order("created_at", { ascending: false }).limit(100);
+    if (error) throw new Error(error.message);
+    return { offers: data ?? [] };
+  });
+
+// Admin: create new offer announcement
+export const createOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      title: z.string().trim().min(2).max(80),
+      description: z.string().trim().min(2).max(300),
+      badge: z.string().trim().max(20).optional(),
+      expires_at: z.string().datetime().optional(),
+      active: z.boolean().default(true),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { data: row, error } = await supabaseAdmin
+      .from("offers")
+      .insert({
+        title: data.title,
+        description: data.description,
+        badge: data.badge || null,
+        expires_at: data.expires_at || null,
+        active: data.active,
+      })
+      .select().single();
+    if (error) throw new Error(error.message);
+    return { offer: row };
+  });
+
+// Admin: toggle active state
+export const toggleOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid(), active: z.boolean() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { error } = await supabaseAdmin.from("offers").update({ active: data.active }).eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// Admin: delete offer
+export const deleteOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const { error } = await supabaseAdmin.from("offers").delete().eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
