@@ -21,15 +21,21 @@ export const LiveOffers = () => {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {offers.map(o => (
-            <div key={o.id} className="relative glass-card rounded-2xl p-6 hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition overflow-hidden group">
-              <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full gradient-gold-bg opacity-10 blur-2xl group-hover:opacity-30 transition" />
-              {o.badge && (
-                <div className="inline-flex items-center gap-1 text-[10px] tracking-widest gradient-gold-bg text-background px-2 py-1 rounded-full font-semibold mb-3">
-                  <Tag className="h-3 w-3" /> {o.badge}
-                </div>
+            <div key={o.id} className="relative glass-card rounded-2xl overflow-hidden hover:-translate-y-1 hover:border-[color:var(--gold)]/60 transition group">
+              {o.image_url && (
+                <img src={o.image_url} alt={o.title} loading="lazy"
+                  className="w-full h-40 object-cover border-b border-[color:var(--gold)]/20" />
               )}
-              <h3 className="font-display text-lg gradient-gold-text mb-2">{o.title}</h3>
-              <p className="text-sm text-muted-foreground">{o.description}</p>
+              <div className="relative p-6">
+                <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full gradient-gold-bg opacity-10 blur-2xl group-hover:opacity-30 transition" />
+                {o.badge && (
+                  <div className="inline-flex items-center gap-1 text-[10px] tracking-widest gradient-gold-bg text-background px-2 py-1 rounded-full font-semibold mb-3">
+                    <Tag className="h-3 w-3" /> {o.badge}
+                  </div>
+                )}
+                <h3 className="font-display text-lg gradient-gold-text mb-2">{o.title}</h3>
+                <p className="text-sm text-muted-foreground">{o.description}</p>
+              </div>
             </div>
           ))}
         </div>
