@@ -407,12 +407,23 @@ function OffersTab() {
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={async () => { await toggle({ data: { id: o.id, active: !o.active } }); refresh(); }}
-                  className="px-3 py-1 rounded-full glass-card text-[10px] uppercase tracking-widest hover:text-gold">
+                <button
+                  type="button"
+                  onClick={() => { toggle({ data: { id: o.id, active: !o.active } }).then(refresh); }}
+                  className="px-3 py-1 rounded-full glass-card text-[10px] uppercase tracking-widest hover:text-gold"
+                >
                   {o.active ? "Pause" : "Resume"}
                 </button>
-                <button onClick={async () => { if (confirm("Delete this offer?")) { await del({ data: { id: o.id } }); refresh(); } }}
-                  className="p-2 rounded-full glass-card hover:text-destructive" aria-label="Delete offer">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm("Delete this offer?")) {
+                      del({ data: { id: o.id } }).then(refresh);
+                    }
+                  }}
+                  className="p-2 rounded-full glass-card hover:text-destructive"
+                  aria-label="Delete offer"
+                >
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
