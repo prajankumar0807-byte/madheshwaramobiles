@@ -178,8 +178,9 @@ export const createOffer = createServerFn({ method: "POST" })
     z.object({
       title: z.string().trim().min(2).max(80),
       description: z.string().trim().min(2).max(300),
-      badge: z.string().trim().max(20).optional(),
-      expires_at: z.string().datetime().optional(),
+      badge: z.string().trim().min(1).max(20).regex(/^[A-Za-z0-9 %+\-!#]+$/, "Badge: letters, numbers, % + - ! # only").optional(),
+      expires_at: z.string().datetime().refine((v) => new Date(v) > new Date(), "Expiry must be in the future").optional(),
+      image_url: z.string().url().max(500).optional(),
       active: z.boolean().default(true),
     }).parse(input),
   )
@@ -193,11 +194,38 @@ export const createOffer = createServerFn({ method: "POST" })
         description: data.description,
         badge: data.badge || null,
         expires_at: data.expires_at || null,
+        image_url: data.image_url || null,
         active: data.active,
       })
       .select().single();
     if (error) throw new Error(error.message);
     return { offer: row };
+  });
+
+// Admin: upload offer image and return a long-lived signed URL
+export const uploadOfferImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({
+      filename: z.string().min(1).max(120).regex(/^[A-Za-z0-9._-]+$/, "Invalid filename"),
+      content_type: z.enum(["image/png", "image/jpeg", "image/webp", "image/gif"]),
+      data_base64: z.string().min(10).max(8_000_000),
+    }).parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    await assertAdmin(supabase, userId);
+    const bytes = Buffer.from(data.data_base64, "base64");
+    if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Image too large (max 5MB)");
+    const ext = (data.filename.split(".").pop() || "bin").toLowerCase();
+    const key = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    const { error: upErr } = await supabaseAdmin.storage.from("offer-images")
+      .upload(key, bytes, { contentType: data.content_type, upsert: false });
+    if (upErr) throw new Error(upErr.message);
+    const { data: signed, error: signErr } = await supabaseAdmin.storage
+      .from("offer-images").createSignedUrl(key, 60 * 60 * 24 * 365 * 10);
+    if (signErr || !signed) throw new Error(signErr?.message ?? "Could not create URL");
+    return { url: signed.signedUrl };
   });
 
 // Admin: toggle active state
