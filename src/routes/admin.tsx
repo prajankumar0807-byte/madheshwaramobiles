@@ -335,30 +335,86 @@ function OffersTab() {
   const create = useServerFn(createOffer);
   const toggle = useServerFn(toggleOffer);
   const del = useServerFn(deleteOffer);
+  const upload = useServerFn(uploadOfferImage);
   const [offers, setOffers] = useState<any[]>([]);
-  const [form, setForm] = useState({ title: "", description: "", badge: "", expires_at: "" });
+  const [form, setForm] = useState({ title: "", description: "", badge: "", expires_at: "", image_url: "" });
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const refresh = () => list().then(r => setOffers(r.offers)).catch(() => {});
   useEffect(() => { refresh(); }, []);
 
-  const announce = async (e: React.FormEvent) => {
+  const validate = () => {
+    const title = form.title.trim();
+    const desc = form.description.trim();
+    const badge = form.badge.trim();
+    if (title.length < 2 || title.length > 80) return "Title must be 2–80 characters.";
+    if (desc.length < 2 || desc.length > 300) return "Description must be 2–300 characters.";
+    if (badge && !/^[A-Za-z0-9 %+\-!#]{1,20}$/.test(badge)) return "Badge: max 20 chars, letters/numbers/% + - ! # only.";
+    if (form.expires_at) {
+      const exp = new Date(form.expires_at);
+      if (isNaN(exp.getTime())) return "Invalid expiry date.";
+      if (exp.getTime() <= Date.now()) return "Expiry must be in the future.";
+    }
+    return null;
+  };
+
+  const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    const allowed = ["image/png", "image/jpeg", "image/webp", "image/gif"];
+    if (!allowed.includes(file.type)) { toast.error("Only PNG, JPG, WEBP, or GIF allowed."); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image too large (max 5MB)."); return; }
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const b64 = result.split(",")[1] ?? "";
+      const safeName = file.name.replace(/[^A-Za-z0-9._-]/g, "_").slice(-100);
+      upload({ data: { filename: safeName, content_type: file.type as any, data_base64: b64 } })
+        .then((r: any) => { setForm(f => ({ ...f, image_url: r.url })); toast.success("Image uploaded"); })
+        .catch((err: any) => toast.error(err?.message ?? "Upload failed"))
+        .finally(() => setUploading(false));
+    };
+    reader.onerror = () => { setUploading(false); toast.error("Could not read file"); };
+    reader.readAsDataURL(file);
+  };
+
+  const announce = (e: React.FormEvent) => {
     e.preventDefault();
-    setBusy(true); setErr(null);
-    try {
-      const payload: any = {
-        title: form.title,
-        description: form.description,
-        active: true,
-      };
-      if (form.badge.trim()) payload.badge = form.badge.trim();
-      if (form.expires_at) payload.expires_at = new Date(form.expires_at).toISOString();
-      await create({ data: payload });
-      setForm({ title: "", description: "", badge: "", expires_at: "" });
-      refresh();
-    } catch (e: any) { setErr(e?.message ?? "Could not announce offer"); }
-    finally { setBusy(false); }
+    const v = validate();
+    if (v) { toast.error(v); return; }
+    setBusy(true);
+    const payload: any = {
+      title: form.title.trim(),
+      description: form.description.trim(),
+      active: true,
+    };
+    if (form.badge.trim()) payload.badge = form.badge.trim();
+    if (form.expires_at) payload.expires_at = new Date(form.expires_at).toISOString();
+    if (form.image_url) payload.image_url = form.image_url;
+    create({ data: payload })
+      .then(() => {
+        setForm({ title: "", description: "", badge: "", expires_at: "", image_url: "" });
+        toast.success("Offer published");
+        refresh();
+      })
+      .catch((err: any) => toast.error(err?.message ?? "Could not publish offer"))
+      .finally(() => setBusy(false));
+  };
+
+  const onToggle = (o: any) => {
+    toggle({ data: { id: o.id, active: !o.active } })
+      .then(() => { toast.success(o.active ? "Offer paused" : "Offer resumed"); refresh(); })
+      .catch((err: any) => toast.error(err?.message ?? "Action failed"));
+  };
+
+  const onDelete = (o: any) => {
+    if (!window.confirm("Delete this offer?")) return;
+    del({ data: { id: o.id } })
+      .then(() => { toast.success("Offer deleted"); refresh(); })
+      .catch((err: any) => toast.error(err?.message ?? "Delete failed"));
   };
 
   return (
@@ -378,15 +434,24 @@ function OffersTab() {
         <textarea required maxLength={300} rows={2} placeholder="Short description shown to customers"
           value={form.description} onChange={e=>setForm({...form,description:e.target.value})}
           className="w-full rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-sm" />
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="text-[10px] text-muted-foreground uppercase tracking-widest">Expires</label>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="text-[10px] text-muted-foreground uppercase tracking-widest cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg glass-card hover:text-gold">
+            <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={onPickFile} className="hidden" disabled={uploading} />
+            {uploading ? "Uploading…" : form.image_url ? "Replace image" : "+ Add image (optional)"}
+          </label>
+          {form.image_url && (
+            <div className="flex items-center gap-2">
+              <img src={form.image_url} alt="preview" className="h-10 w-10 rounded object-cover border border-[color:var(--gold)]/30" />
+              <button type="button" onClick={() => setForm(f => ({ ...f, image_url: "" }))} className="text-[10px] text-muted-foreground hover:text-destructive uppercase tracking-widest">Remove</button>
+            </div>
+          )}
+          <label className="text-[10px] text-muted-foreground uppercase tracking-widest ml-auto">Expires</label>
           <input type="datetime-local" value={form.expires_at} onChange={e=>setForm({...form,expires_at:e.target.value})}
             className="rounded-lg bg-secondary/60 border border-[color:var(--gold)]/20 px-3 py-2 text-xs" />
-          <button disabled={busy} className="ml-auto px-4 py-2 rounded-lg gradient-gold-bg text-background text-xs font-semibold inline-flex items-center gap-2 disabled:opacity-50">
+          <button disabled={busy || uploading} className="px-4 py-2 rounded-lg gradient-gold-bg text-background text-xs font-semibold inline-flex items-center gap-2 disabled:opacity-50">
             <Megaphone className="h-3 w-3" /> {busy ? "Publishing…" : "Publish offer"}
           </button>
         </div>
-        {err && <p className="text-xs text-destructive">{err}</p>}
       </form>
 
       <div className="space-y-2">
@@ -394,37 +459,29 @@ function OffersTab() {
           const expired = o.expires_at && new Date(o.expires_at) < new Date();
           return (
             <div key={o.id} className={`glass-card rounded-xl p-4 flex flex-wrap gap-3 items-start justify-between ${!o.active || expired ? "opacity-60" : ""}`}>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {o.badge && <span className="text-[10px] gradient-gold-bg text-background px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><Tag className="h-3 w-3" />{o.badge}</span>}
-                  <span className="font-display gradient-gold-text">{o.title}</span>
-                  {!o.active && <span className="text-[10px] uppercase text-muted-foreground">paused</span>}
-                  {expired && <span className="text-[10px] uppercase text-destructive">expired</span>}
+              <div className="flex gap-3 min-w-0 flex-1">
+                {o.image_url && <img src={o.image_url} alt="" className="h-16 w-16 rounded-lg object-cover border border-[color:var(--gold)]/30 shrink-0" />}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {o.badge && <span className="text-[10px] gradient-gold-bg text-background px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"><Tag className="h-3 w-3" />{o.badge}</span>}
+                    <span className="font-display gradient-gold-text">{o.title}</span>
+                    {!o.active && <span className="text-[10px] uppercase text-muted-foreground">paused</span>}
+                    {expired && <span className="text-[10px] uppercase text-destructive">expired</span>}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">{o.description}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Posted {new Date(o.created_at).toLocaleString()}
+                    {o.expires_at && ` · expires ${new Date(o.expires_at).toLocaleString()}`}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{o.description}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  Posted {new Date(o.created_at).toLocaleString()}
-                  {o.expires_at && ` · expires ${new Date(o.expires_at).toLocaleString()}`}
-                </p>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => { toggle({ data: { id: o.id, active: !o.active } }).then(refresh); }}
-                  className="px-3 py-1 rounded-full glass-card text-[10px] uppercase tracking-widest hover:text-gold"
-                >
+                <button type="button" onClick={() => onToggle(o)}
+                  className="px-3 py-1 rounded-full glass-card text-[10px] uppercase tracking-widest hover:text-gold">
                   {o.active ? "Pause" : "Resume"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm("Delete this offer?")) {
-                      del({ data: { id: o.id } }).then(refresh);
-                    }
-                  }}
-                  className="p-2 rounded-full glass-card hover:text-destructive"
-                  aria-label="Delete offer"
-                >
+                <button type="button" onClick={() => onDelete(o)}
+                  className="p-2 rounded-full glass-card hover:text-destructive" aria-label="Delete offer">
                   <Trash2 className="h-3 w-3" />
                 </button>
               </div>
