@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Sparkles, Tag } from "lucide-react";
 
-type Offer = { id: string; title: string; description: string; badge: string | null };
+type Offer = { id: string; title: string; description: string; badge: string | null; image_url: string | null };
 
 export const LiveOffers = () => {
   const [offers, setOffers] = useState<Offer[]>([]);
   useEffect(() => {
-    supabase.from("offers").select("id,title,description,badge").eq("active", true)
+    supabase.from("offers").select("id,title,description,badge,image_url").eq("active", true)
       .order("created_at", { ascending: false }).limit(6)
       .then(({ data }) => setOffers((data as Offer[]) ?? []));
   }, []);
