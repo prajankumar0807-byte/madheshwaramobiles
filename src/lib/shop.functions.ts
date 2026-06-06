@@ -201,8 +201,15 @@ export const createOffer = createServerFn({ method: "POST" })
       })
       .select().single();
     if (error) throw new Error(error.message);
+    const { data: u } = await supabase.auth.getUser();
+    await writeAudit({
+      actor_id: userId, actor_email: u.user?.email ?? null,
+      action: "offer.create", target: (row as any)?.id ?? null,
+      details: { title: data.title, badge: data.badge ?? null, active: data.active, has_image: !!data.image_url },
+    });
     return { offer: row };
   });
+
 
 // Admin: upload offer image and return a long-lived signed URL
 export const uploadOfferImage = createServerFn({ method: "POST" })
