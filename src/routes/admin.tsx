@@ -534,7 +534,12 @@ function AuditTab() {
     "role.grant": "➕ Role granted",
     "role.revoke": "➖ Role revoked",
     "audit.export": "📤 Audit exported",
+    "offer.create": "📣 Offer published",
+    "offer.pause": "⏸️ Offer paused",
+    "offer.resume": "▶️ Offer resumed",
+    "offer.delete": "🗑️ Offer deleted",
   };
+
   const runVerify = async () => { setIntegrity(null); const r = await verify(); setIntegrity(r); };
   const toIso = (v: string) => v ? new Date(v).toISOString() : undefined;
   const flaggedSeq = new Set((integrity?.issues ?? []).map(i => i.seq));
