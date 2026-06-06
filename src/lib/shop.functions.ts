@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeAudit } from "@/lib/audit.functions";
+
 
 // Public: look up a repair by job code OR phone number.
 // SECURITY: Strictly whitelist input characters to prevent PostgREST .or() filter
@@ -199,8 +201,15 @@ export const createOffer = createServerFn({ method: "POST" })
       })
       .select().single();
     if (error) throw new Error(error.message);
+    const { data: u } = await supabase.auth.getUser();
+    await writeAudit({
+      actor_id: userId, actor_email: u.user?.email ?? null,
+      action: "offer.create", target: (row as any)?.id ?? null,
+      details: { title: data.title, badge: data.badge ?? null, active: data.active, has_image: !!data.image_url },
+    });
     return { offer: row };
   });
+
 
 // Admin: upload offer image and return a long-lived signed URL
 export const uploadOfferImage = createServerFn({ method: "POST" })
@@ -237,6 +246,12 @@ export const toggleOffer = createServerFn({ method: "POST" })
     await assertAdmin(supabase, userId);
     const { error } = await supabaseAdmin.from("offers").update({ active: data.active }).eq("id", data.id);
     if (error) throw new Error(error.message);
+    const { data: u } = await supabase.auth.getUser();
+    await writeAudit({
+      actor_id: userId, actor_email: u.user?.email ?? null,
+      action: data.active ? "offer.resume" : "offer.pause", target: data.id,
+      details: { active: data.active },
+    });
     return { ok: true };
   });
 
@@ -247,7 +262,15 @@ export const deleteOffer = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await assertAdmin(supabase, userId);
+    const { data: existing } = await supabaseAdmin.from("offers").select("title,badge").eq("id", data.id).maybeSingle();
     const { error } = await supabaseAdmin.from("offers").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
+    const { data: u } = await supabase.auth.getUser();
+    await writeAudit({
+      actor_id: userId, actor_email: u.user?.email ?? null,
+      action: "offer.delete", target: data.id,
+      details: { title: (existing as any)?.title ?? null, badge: (existing as any)?.badge ?? null },
+    });
     return { ok: true };
   });
+
