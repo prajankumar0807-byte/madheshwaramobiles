@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { writeAudit } from "@/lib/audit.functions";
+
 
 // Public: look up a repair by job code OR phone number.
 // SECURITY: Strictly whitelist input characters to prevent PostgREST .or() filter
