@@ -10,7 +10,8 @@
     "security:check": "node scripts/security-regression.mjs",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:offers": "node scripts/test-offers-flow.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
