@@ -11,7 +11,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test:offers": "node scripts/test-offers-flow.mjs"
+    "test:offers": "node scripts/test-offers-flow.mjs",
+    "test:voice": "node --experimental-strip-types scripts/test-voice-commands.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
