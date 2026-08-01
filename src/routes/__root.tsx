@@ -11,6 +11,8 @@ import {
 import appCss from "../styles.css?url";
 import { LanguageProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
+import { AppErrorBoundary } from "@/components/AppErrorBoundary";
+import { StylesheetGuard } from "@/components/StylesheetGuard";
 
 function NotFoundComponent() {
   return (
@@ -122,8 +124,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <AppErrorBoundary>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+        </AppErrorBoundary>
+        <StylesheetGuard />
         <Toaster richColors position="top-right" />
       </LanguageProvider>
     </QueryClientProvider>
