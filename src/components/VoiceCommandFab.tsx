@@ -139,12 +139,29 @@ export const VoiceCommandFab = () => {
     setListening(false);
   }, []);
 
-  const start = useCallback(() => {
+  const requestMic = useCallback(async () => {
+    const nav: any = typeof navigator !== "undefined" ? navigator : null;
+    if (!nav?.mediaDevices?.getUserMedia) return true;
+    try {
+      const stream = await nav.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+      setPerm("granted");
+      return true;
+    } catch {
+      setPerm("denied");
+      toast.error(lang === "ta" ? "மைக் அனுமதி தேவை" : "Microphone permission is needed");
+      return false;
+    }
+  }, [lang]);
+
+  const start = useCallback(async () => {
     if (!enabled) {
       toast.error(lang === "ta" ? "குரல் முடக்கப்பட்டுள்ளது" : "Voice is disabled");
       return;
     }
     if (!recRef.current) return;
+    const ok = await requestMic();
+    if (!ok) return;
     setInterim(""); setFinalT(""); setPending(null);
     restartOnEnd.current = handsFree;
     try {
@@ -159,7 +176,7 @@ export const VoiceCommandFab = () => {
         toast.message(lang === "ta" ? "கேட்பது நிறுத்தப்பட்டது" : "Listening stopped");
       }, HANDS_FREE_WINDOW_MS);
     }
-  }, [enabled, handsFree, lang, stop]);
+  }, [enabled, handsFree, lang, stop, requestMic]);
 
   const confirmPending = () => {
     if (!pending) return;

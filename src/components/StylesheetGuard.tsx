@@ -13,8 +13,8 @@ a { color:#e8c66a; }
 button, a { cursor:pointer; }
 section { padding: 28px 16px; max-width: 960px; margin: 0 auto; }
 button { border-radius:8px; border:1px solid #e8c66a; background:#e8c66a; color:#121212; padding:10px 16px; font-weight:600; }
-input, textarea, select { width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #4a4staying; }
-`.replace("#4a4staying", "#4a4638");
+input, textarea, select { width:100%; box-sizing:border-box; padding:10px; border-radius:8px; border:1px solid #4a4638; }
+`;
 
 function stylesheetLoaded() {
   if (typeof document === "undefined") return true;

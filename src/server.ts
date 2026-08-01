@@ -41,7 +41,7 @@ const SECURITY_HEADERS: Record<string, string> = {
   "x-frame-options": "DENY",
   "x-content-type-options": "nosniff",
   "referrer-policy": "strict-origin-when-cross-origin",
-  "permissions-policy": "camera=(), microphone=(), geolocation=(), interest-cohort=()",
+  "permissions-policy": "camera=(), microphone=(self), geolocation=(), interest-cohort=()",
   "cross-origin-opener-policy": "same-origin",
   "x-xss-protection": "0",
 };
