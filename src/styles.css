@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Sora:wght@300;400;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
