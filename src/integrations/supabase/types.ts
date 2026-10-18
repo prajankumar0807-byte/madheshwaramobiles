@@ -53,6 +53,48 @@ export type Database = {
         }
         Relationships: []
       }
+      client_error_reports: {
+        Row: {
+          component_stack: string | null
+          created_at: string
+          event_type: string
+          id: string
+          locale: string
+          message: string
+          pathname: string
+          stack: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          component_stack?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          locale?: string
+          message: string
+          pathname?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          component_stack?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          locale?: string
+          message?: string
+          pathname?: string
+          stack?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       feedback: {
         Row: {
           created_at: string
