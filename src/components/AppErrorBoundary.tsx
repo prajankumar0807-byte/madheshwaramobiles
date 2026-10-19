@@ -1,4 +1,5 @@
 import React from "react";
+import { requestClientErrorReport } from "@/components/ClientErrorReportListener";
 
 type Props = { children: React.ReactNode };
 type State = { error: Error | null };
@@ -28,6 +29,19 @@ export class AppErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, info: unknown) {
     console.error("[AppErrorBoundary]", error, info);
+    const componentStack = info && typeof info === "object" && "componentStack" in info
+      ? String(info.componentStack ?? "").slice(0, 12000)
+      : undefined;
+    const locale = typeof window !== "undefined" && window.localStorage.getItem("lang") === "ta" ? "ta" : "en";
+    requestClientErrorReport({
+      event_type: "app_error_boundary",
+      message: error.message.slice(0, 2000) || "Unhandled application rendering error",
+      stack: error.stack?.slice(0, 12000),
+      component_stack: componentStack,
+      pathname: typeof window === "undefined" ? "/" : window.location.pathname.slice(0, 300) || "/",
+      locale,
+      user_agent: typeof navigator === "undefined" ? undefined : navigator.userAgent.slice(0, 500),
+    });
   }
 
   render() {

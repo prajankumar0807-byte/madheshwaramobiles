@@ -6,13 +6,26 @@ import { listRepairs, createRepair, updateRepair, listFeedback, checkAdmin, list
 import { toast } from "sonner";
 import { logAdminLogin, listAuditLogs, verifyAuditChain, exportAuditLogs, getSecurityAlerts } from "@/lib/audit.functions";
 import { runSecurityScan, listSecurityScans, getLatestSecurityScan } from "@/lib/security.functions";
+import { listClientErrorReports } from "@/lib/client-error.functions";
 import { ShopLogo } from "@/components/ShopLogo";
-import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown, Megaphone, Trash2, Tag } from "lucide-react";
+import { LogOut, ShieldCheck, ShieldAlert, Download, FileText, AlertTriangle, Play, Wrench, History, TrendingUp, TrendingDown, Megaphone, Trash2, Tag, Bug } from "lucide-react";
 import { VisitorStat } from "@/components/VisitorCounter";
 
 
 
-export const Route = createFileRoute("/admin")({ component: AdminPage });
+export const Route = createFileRoute("/admin")({
+  head: () => ({
+    meta: [
+      { title: "Admin access — Sri Madheshwara Mobiles" },
+      { name: "description", content: "Secure shop management for Sri Madheshwara Mobiles." },
+      { property: "og:title", content: "Admin access — Sri Madheshwara Mobiles" },
+      { property: "og:description", content: "Secure shop management for Sri Madheshwara Mobiles." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+  component: AdminPage,
+});
 
 function AdminPage() {
   const [session, setSession] = useState<any>(null);
@@ -89,7 +102,7 @@ function AuthForm() {
 }
 
 function Dashboard() {
-  const [tab, setTab] = useState<"repairs" | "offers" | "feedback" | "audit" | "alerts" | "security">("repairs");
+  const [tab, setTab] = useState<"repairs" | "offers" | "feedback" | "audit" | "alerts" | "security" | "errors">("repairs");
   return (
     <div className="min-h-screen">
       <div className="border-b border-[color:var(--gold)]/20 glass">
@@ -112,7 +125,7 @@ function Dashboard() {
           <VisitorStat />
         </div>
         <div className="flex gap-2 mb-6 flex-wrap">
-          {(["repairs","offers","feedback","audit","alerts","security"] as const).map(t => (
+          {(["repairs","offers","feedback","audit","alerts","security","errors"] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
               className={`px-4 py-2 rounded-full text-xs uppercase tracking-widest transition ${tab===t?"gradient-gold-bg text-background":"glass-card text-muted-foreground"}`}>
               {t}
@@ -125,6 +138,62 @@ function Dashboard() {
         {tab === "audit" && <AuditTab />}
         {tab === "alerts" && <AlertsTab />}
         {tab === "security" && <SecurityTab />}
+        {tab === "errors" && <ClientErrorsTab />}
+      </div>
+    </div>
+  );
+}
+
+function ClientErrorsTab() {
+  const fetchReports = useServerFn(listClientErrorReports);
+  const [reports, setReports] = useState<any[]>([]);
+  const [busy, setBusy] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const refresh = () => {
+    setBusy(true);
+    setError(null);
+    fetchReports()
+      .then((result) => setReports(result.reports))
+      .catch(() => setError("Could not load error reports. Please retry."))
+      .finally(() => setBusy(false));
+  };
+  useEffect(() => { refresh(); }, []);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[10px] tracking-[0.4em] text-gold inline-flex items-center gap-2"><Bug className="h-3 w-3" /> CLIENT ERROR REPORTS</div>
+          <p className="mt-1 text-xs text-muted-foreground">Recent stylesheet recovery and application rendering failures.</p>
+        </div>
+        <button type="button" onClick={refresh} disabled={busy} className="rounded-lg glass-card px-3 py-2 text-xs hover:text-gold disabled:opacity-50">
+          {busy ? "Loading…" : "Refresh"}
+        </button>
+      </div>
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {!busy && !error && reports.length === 0 && <p className="py-8 text-center text-sm text-muted-foreground">No client errors reported.</p>}
+      <div className="space-y-2">
+        {reports.map((report) => (
+          <details key={report.id} className="glass-card rounded-xl border border-[color:var(--gold)]/15 p-4">
+            <summary className="cursor-pointer list-none">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+                    <span className="text-gold">{report.event_type === "stylesheet_transform" ? "Stylesheet recovery" : "Application error"}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{report.pathname}</span>
+                  </div>
+                  <p className="mt-1 break-words text-xs text-muted-foreground">{report.message}</p>
+                </div>
+                <time className="whitespace-nowrap text-[10px] text-muted-foreground">{new Date(report.created_at).toLocaleString()}</time>
+              </div>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                {report.user_email || report.user_id || "Anonymous visitor"} · {report.locale === "ta" ? "Tamil" : "English"} · {report.user_agent || "Unknown browser"}
+              </p>
+            </summary>
+            {report.stack && <pre className="mt-3 max-h-64 overflow-auto whitespace-pre-wrap break-words border-t border-[color:var(--gold)]/15 pt-3 font-mono text-[10px] text-muted-foreground">{report.stack}</pre>}
+            {report.component_stack && <pre className="mt-2 max-h-64 overflow-auto whitespace-pre-wrap break-words font-mono text-[10px] text-muted-foreground">{report.component_stack}</pre>}
+          </details>
+        ))}
       </div>
     </div>
   );

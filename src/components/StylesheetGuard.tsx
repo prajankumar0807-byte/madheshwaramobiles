@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { requestClientErrorReport } from "@/components/ClientErrorReportListener";
 
 /**
  * Detects a failed / un-transformed stylesheet and injects a minimal readable
@@ -30,29 +31,62 @@ function stylesheetLoaded() {
 
 export function StylesheetGuard() {
   const [degraded, setDegraded] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    let retryCount = 0;
+    let retryTimer: number | undefined;
     const check = () => {
       if (cancelled) return;
-      if (!stylesheetLoaded()) {
-        const id = "fallback-theme";
-        if (!document.getElementById(id)) {
-          const style = document.createElement("style");
-          style.id = id;
-          style.textContent = FALLBACK_CSS;
-          document.head.appendChild(style);
-        }
-        setDegraded(true);
+      if (stylesheetLoaded()) {
+        setDegraded(false);
+        setRetrying(false);
+        document.getElementById("fallback-theme")?.remove();
+        return;
       }
+
+      const id = "fallback-theme";
+      if (!document.getElementById(id)) {
+        const style = document.createElement("style");
+        style.id = id;
+        style.textContent = FALLBACK_CSS;
+        document.head.appendChild(style);
+      }
+      setDegraded(true);
+
+      if (retryCount === 0) {
+        const locale = window.localStorage.getItem("lang") === "ta" ? "ta" : "en";
+        requestClientErrorReport({
+          event_type: "stylesheet_transform",
+          message: "Stylesheet did not apply expected utility styles; automatic recovery started.",
+          stack: new Error("Stylesheet transform or load check failed").stack,
+          pathname: window.location.pathname.slice(0, 300) || "/",
+          locale,
+          user_agent: window.navigator.userAgent.slice(0, 500),
+        });
+      }
+
+      if (retryCount >= 6) {
+        setRetrying(false);
+        return;
+      }
+
+      setRetrying(true);
+      retryCount += 1;
+      const stylesheet = document.querySelector<HTMLLinkElement>('link[rel="stylesheet"][href*="styles"]');
+      if (stylesheet) {
+        const url = new URL(stylesheet.href);
+        url.searchParams.set("smm-retry", String(retryCount));
+        stylesheet.href = url.toString();
+      }
+      retryTimer = window.setTimeout(check, Math.min(500 * (2 ** (retryCount - 1)), 16_000));
     };
-    // Give the stylesheet a beat to arrive, then re-check once more.
-    const t1 = window.setTimeout(check, 400);
-    const t2 = window.setTimeout(check, 2500);
+    const initialCheck = window.setTimeout(check, 400);
     return () => {
       cancelled = true;
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
+      window.clearTimeout(initialCheck);
+      if (retryTimer !== undefined) window.clearTimeout(retryTimer);
     };
   }, []);
 
@@ -79,7 +113,7 @@ export function StylesheetGuard() {
         justifyContent: "center",
       }}
     >
-      <span>Styles couldn&apos;t load — showing a simplified version.</span>
+      <span>{retrying ? "Styles are recovering — a retry is in progress." : "Styles couldn’t load — showing a simplified version."}</span>
       <button
         onClick={() => window.location.reload()}
         style={{

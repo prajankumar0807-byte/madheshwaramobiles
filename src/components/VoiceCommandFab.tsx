@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Mic, MicOff, X, Check, ShieldCheck, Radio, Search } from "lucide-react";
+import { Mic, MicOff, X, Check, ShieldCheck, Radio, Search, AlertCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { toast } from "sonner";
+import type { Lang } from "@/lib/voice-commands";
 import {
   COMMANDS, matchCommand, topSuggestions, URLS,
   type Command,
@@ -10,6 +11,7 @@ import {
 const HANDS_FREE_WINDOW_MS = 15000; // keep mic open 15s after tap in hands-free mode
 const PERM_KEY = "smm-voice-enabled";
 const HANDS_FREE_KEY = "smm-voice-handsfree";
+const VOICE_LANG_KEY = "smm-voice-language";
 
 const runCommand = (cmd: Command) => {
   switch (cmd.kind) {
@@ -27,7 +29,7 @@ const runCommand = (cmd: Command) => {
   }
 };
 
-type PermState = "unknown" | "granted" | "denied" | "disabled";
+type PermState = "unknown" | "granted" | "denied" | "disabled" | "unavailable";
 
 export const VoiceCommandFab = () => {
   const { lang } = useI18n();
@@ -35,6 +37,7 @@ export const VoiceCommandFab = () => {
   const [listening, setListening] = useState(false);
   const [handsFree, setHandsFree] = useState(false);
   const [enabled, setEnabled] = useState(true);
+  const [voiceLang, setVoiceLang] = useState<Lang>(lang);
   const [perm, setPerm] = useState<PermState>("unknown");
   const [supported, setSupported] = useState(true);
   const [interim, setInterim] = useState("");
@@ -53,6 +56,14 @@ export const VoiceCommandFab = () => {
     if (dis === "0") { setEnabled(false); setPerm("disabled"); }
     const hf = localStorage.getItem(HANDS_FREE_KEY);
     if (hf === "1") setHandsFree(true);
+    const savedLang = localStorage.getItem(VOICE_LANG_KEY);
+    const siteLang = localStorage.getItem("lang");
+    const detectedLang = navigator.language.toLowerCase().startsWith("ta") ? "ta" : "en";
+    const preferredLang = savedLang === "en" || savedLang === "ta"
+      ? savedLang
+      : siteLang === "en" || siteLang === "ta" ? siteLang : detectedLang;
+    setVoiceLang(preferredLang);
+    localStorage.setItem(VOICE_LANG_KEY, preferredLang);
   }, []);
 
   // Build recognizer
@@ -64,7 +75,7 @@ export const VoiceCommandFab = () => {
     rec.continuous = handsFree;
     rec.interimResults = true;
     rec.maxAlternatives = 3;
-    rec.lang = lang === "ta" ? "ta-IN" : "en-IN";
+    rec.lang = voiceLang === "ta" ? "ta-IN" : "en-IN";
 
     rec.onstart = () => setListening(true);
     rec.onresult = (e: any) => {
@@ -112,7 +123,7 @@ export const VoiceCommandFab = () => {
       restartOnEnd.current = false;
       try { rec.abort(); } catch {}
     };
-  }, [lang, handsFree, enabled]);
+  }, [voiceLang, handsFree, enabled]);
 
   // Track permission where available
   useEffect(() => {
@@ -121,7 +132,7 @@ export const VoiceCommandFab = () => {
     nav.permissions.query({ name: "microphone" as PermissionName }).then((res: any) => {
       if (!enabled) return;
       setPerm(res.state === "prompt" ? "unknown" : (res.state as PermState));
-      res.onchange = () => setPerm(res.state);
+      res.onchange = () => setPerm(res.state === "prompt" ? "unknown" : res.state as PermState);
     }).catch(() => {});
   }, [enabled]);
 
@@ -141,7 +152,10 @@ export const VoiceCommandFab = () => {
 
   const requestMic = useCallback(async () => {
     const nav: any = typeof navigator !== "undefined" ? navigator : null;
-    if (!nav?.mediaDevices?.getUserMedia) return true;
+    if (!nav?.mediaDevices?.getUserMedia) {
+      setPerm("unavailable");
+      return false;
+    }
     try {
       const stream = await nav.mediaDevices.getUserMedia({ audio: true });
       stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
@@ -208,19 +222,24 @@ export const VoiceCommandFab = () => {
     if (!next) stop();
   };
 
-  if (!supported) return null;
+  const chooseVoiceLanguage = (next: Lang) => {
+    setVoiceLang(next);
+    localStorage.setItem(VOICE_LANG_KEY, next);
+  };
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        aria-label="Voice commands"
+        aria-label={supported ? "Voice commands" : (lang === "ta" ? "குரல் தேடல் கிடைக்கவில்லை" : "Voice search unavailable")}
         data-testid="voice-fab"
-        className="fixed bottom-44 right-6 z-50 group"
+        disabled={!supported}
+        title={!supported ? (lang === "ta" ? "இந்த உலாவி குரல் தேடலை ஆதரிக்கவில்லை" : "Voice search is not supported by this browser") : undefined}
+        className="fixed bottom-44 right-6 z-50 group disabled:cursor-not-allowed disabled:opacity-50"
       >
         <div className="absolute inset-0 rounded-full gradient-gold-bg blur-xl opacity-60 animate-pulse-glow" />
         <div className="relative h-14 w-14 rounded-full glass-card gold-border flex items-center justify-center shadow-gold transition-transform group-hover:scale-110">
-          <Mic className="h-6 w-6 text-gold" />
+          {supported ? <Mic className="h-6 w-6 text-gold" /> : <AlertCircle className="h-6 w-6 text-muted-foreground" />}
         </div>
       </button>
 
@@ -256,6 +275,17 @@ export const VoiceCommandFab = () => {
 
             {/* Toggles */}
             <div className="flex flex-wrap gap-2 mb-4 text-xs">
+              <div className="inline-flex items-center rounded-full border border-[color:var(--gold)]/20 p-0.5" aria-label={lang === "ta" ? "குரல் மொழி" : "Voice search language"}>
+                {(["en", "ta"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    onClick={() => chooseVoiceLanguage(choice)}
+                    aria-pressed={voiceLang === choice}
+                    className={`rounded-full px-2.5 py-1 transition ${voiceLang === choice ? "gradient-gold-bg text-background" : "text-muted-foreground"}`}
+                  >{choice === "en" ? "EN" : "தமிழ்"}</button>
+                ))}
+              </div>
               <button
                 onClick={toggleHandsFree}
                 className={`px-3 py-1.5 rounded-full border transition ${handsFree ? "bg-[color:var(--gold)]/20 border-[color:var(--gold)] text-gold" : "border-[color:var(--gold)]/20 text-muted-foreground"}`}
@@ -291,12 +321,25 @@ export const VoiceCommandFab = () => {
               </div>
             )}
 
-            {/* Permission denied banner */}
-            {perm === "denied" && (
-              <div className="mb-4 text-xs rounded-2xl border border-red-500/40 bg-red-500/10 p-3 text-red-200">
-                {lang === "ta"
-                  ? "மைக்ரோஃபோன் அனுமதி மறுக்கப்பட்டது. உலாவி முகவரிப் பட்டியில் மைக் ஐகானைத் தட்டி இந்த தளத்திற்கு அனுமதி வழங்கவும், பிறகு மீண்டும் முயற்சிக்கவும்."
-                  : "Microphone permission was blocked. Tap the mic/lock icon in your browser's address bar, allow this site, then try again."}
+            {/* Permission and browser availability guidance */}
+            {(perm === "denied" || perm === "unavailable" || !supported) && (
+              <div className="mb-4 rounded-2xl border border-destructive/40 bg-destructive/10 p-3 text-xs text-foreground" role="alert">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
+                  <div>
+                    <p className="font-semibold">{lang === "ta" ? "மைக் அனுமதி அல்லது ஆதரவு தேவை" : "Microphone access is unavailable"}</p>
+                    <p className="mt-1 text-muted-foreground">
+                      {perm === "unavailable" || !supported
+                        ? (lang === "ta" ? "இந்த உலாவி குரல் தேடலை ஆதரிக்கவில்லை. மைக் மற்றும் குரல் தேடலை ஆதரிக்கும் புதுப்பிக்கப்பட்ட உலாவியைப் பயன்படுத்தவும்." : "This browser does not provide microphone or speech-recognition support. Try an up-to-date browser with microphone access over HTTPS.")
+                        : (lang === "ta" ? "உலாவி முகவரிப் பட்டியில் உள்ள தள அமைப்புகளைத் திறந்து, இந்த தளத்திற்கு மைக் அனுமதி வழங்கி மீண்டும் முயற்சிக்கவும்." : "Open this site's browser permissions from the address bar, allow microphone access, then try again.")}
+                    </p>
+                    {perm === "denied" && supported && (
+                      <button type="button" onClick={() => { void requestMic(); }} className="mt-2 rounded-lg border border-[color:var(--gold)]/30 px-3 py-1.5 text-gold">
+                        {lang === "ta" ? "அனுமதியை மீண்டும் சரிபார்" : "Check permission again"}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -304,7 +347,7 @@ export const VoiceCommandFab = () => {
             <div className="flex flex-col items-center py-4">
               <button
                 onClick={listening ? stop : start}
-                disabled={!enabled}
+                disabled={!enabled || perm === "denied" || perm === "unavailable" || !supported}
                 data-testid="voice-mic"
                 className={`relative h-24 w-24 rounded-full flex items-center justify-center transition disabled:opacity-40 ${listening ? "bg-red-500/20 border-2 border-red-500" : "gradient-gold-bg shadow-gold"}`}
                 aria-label={listening ? "Stop listening" : "Start listening"}
@@ -321,7 +364,11 @@ export const VoiceCommandFab = () => {
                     ? (handsFree
                         ? (lang === "ta" ? `கேட்கிறேன் — ${HANDS_FREE_WINDOW_MS/1000}வி நேரடி` : `Listening — hands-free ${HANDS_FREE_WINDOW_MS/1000}s`)
                         : (lang === "ta" ? "கேட்கிறேன்… பேசுங்கள்" : "Listening… speak now"))
-                    : (lang === "ta" ? "மைக்கை அழுத்தி பேசுங்கள்" : "Tap the mic and speak")}
+                    : perm === "denied"
+                      ? (lang === "ta" ? "மைக் அனுமதியை இயக்கவும்" : "Enable microphone permission to continue")
+                      : perm === "unavailable" || !supported
+                        ? (lang === "ta" ? "இந்த உலாவியில் மைக் கிடைக்கவில்லை" : "Microphone is unavailable in this browser")
+                        : (lang === "ta" ? "மைக்கை அழுத்தி பேசுங்கள்" : "Tap the mic and speak")}
               </p>
             </div>
 
