@@ -87,8 +87,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "madheshwara mobiles" },
       { name: "twitter:description", content: "A premium, AI-powered portfolio website for a mobile shop, showcasing devices, services, and offers." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BQSrWrfwdfhGBI16JpNALkvZgBp2/social-images/social-1780032457304-104712.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/BQSrWrfwdfhGBI16JpNALkvZgBp2/social-images/social-1780032457304-104712.webp" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
