@@ -13,6 +13,7 @@ import { LanguageProvider } from "@/lib/i18n";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/AppErrorBoundary";
 import { StylesheetGuard } from "@/components/StylesheetGuard";
+import { ClientErrorReportListener } from "@/components/ClientErrorReportListener";
 
 function NotFoundComponent() {
   return (
@@ -129,6 +130,7 @@ function RootComponent() {
           <Outlet />
         </AppErrorBoundary>
         <StylesheetGuard />
+        <ClientErrorReportListener />
         <Toaster richColors position="top-right" />
       </LanguageProvider>
     </QueryClientProvider>
